@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Placenote 3D Explorer</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="container">
+        <div class="header">
+            <div style="width: 100%; overflow: hidden;">
+                <div style="width: 25%; float: left;">
+                    <img src="logo.png" width="50" style="padding-left: 10px;" />
+                </div>
+                <div style="width:75%;float:left;">
+                    <h1>Placenote Mesh Explorer</h1>
+                </div>
+            </div>
+        </div>
+        <div class="wrapper clearfix" id="screencontainer">
+          <div class="nav">
+            <div class="input">
+              <div class="label">Your API Key</div>
+              <input type="text" name="apikey" id="apikey" >
+            </div>
+            <div class="input">
+              <div class="label">Your Map ID</div>
+              <input type="text" name="mapid" id="mapid" >
+            </div>
+            <button id="startMeshManager" onclick="onClickStartMeshManagerBtn()">View Mesh </button>
+            <button id="startMeshManager" onclick="onClickDownloadMeshToFolderButton()"> Download Mesh </button>
+            <div class="spacer"></div>
+            <div class='imagepanel'>
+              <div class='gridcontainer' id="gridcontainer" style="display:none;" >
+              <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_1" /></div>
+              <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_2" /></div>
+              <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_3" /></div>
+              <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_4" /></div>
+              <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_5" /></div>
+              </div>
+            </div>
+          </div>
+          <div class="content" id="threejscontainer">
+                <div class="content" id="threeViewer">
+                    <button style="right:20px; top:20px;" class="ui" id="shareLinkButton" onclick="onShareLinkButtonClick()">Get Share Link</button>
+
+                </div>
+          </div>
+        </div>
+        <div class="footer">
+            <p>Made with &hearts; by Placenote</p>
+          </p>
+        </div>
+    </div>
+
+  <!-- The Modal -->
+  <div id="imageModal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content">
+
+      <div class="loader"></div>
+
+  </div>
+
+</div>
+
+<div id="linkmodal" class="linkmodal">
+
+    <!-- Modal content -->
+    <div class="link-modal-content">
+        <span class="close">&times;</span>
+       <h2 id="shareheader">Copy and share this link:</h2>
+       <br />
+
+       <input type="text" id="sharelink" style="display:none;" readonly>
+
+
+
+    </div>
+
+  </div>
+
+
+
+  </body>
+  <script>
+    // Disables default arrow key and space bar behaviours
+    window.addEventListener("keydown", function(e) {
+    // space and arrow keys
+    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        e.preventDefault();
+      }
+    }, false);
+  </script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.0.2/jszip-utils.min.js"></script>
+  <script src="Lib/threejs/Three.iife.js"></script>
+  <script src="Lib/mesh-manager.js/build/mesh-manager.iife.js"></script>
+  <script src="index.js"></script>
+</html>

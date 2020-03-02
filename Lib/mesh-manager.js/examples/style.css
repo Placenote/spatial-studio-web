@@ -1,0 +1,120 @@
+.rotate90 {
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    transform: rotate(90deg);
+  }
+  .slider {
+    display: flex;
+    overflow-x: auto;
+    height: 300px;
+    padding-top: 50px;
+    margin-top: 50px;
+  }
+  .center {
+    text-align: center;
+  }
+  body {
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  }
+
+  a {
+    color: #00B7FF;
+  }
+  input {
+    display: block;
+    margin-bottom: 20px;
+    padding: 5px;
+    width: 90%;
+    border: 2px solid lightgrey;
+    border-radius: 3px;
+    font-size: 16px;
+  }
+  .box { 
+    padding: 10px; 
+    border: 3px solid black; 
+  }
+  .section {
+    margin-left: 50px;
+  }
+  .label {
+    padding-bottom: 10px;
+  }
+
+  button {
+    font-size: 16px;
+    border-radius: 3px;
+    background-color: lightgrey;
+    border: 1px solid grey;
+    box-shadow: 2px 2px black;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 10px;
+    margin-top: 5px;
+  }
+  
+  button:hover {
+    background-color: yellow;
+  }
+  
+  button:active {
+    box-shadow: none;
+  }
+
+  /*  the new stuff  */
+  .header{
+    padding: 10px 0;
+    background-color: #0095F2; 
+  }
+
+  .header h1{
+    font-size: 26px; 
+    margin: 10px;
+    color: #ffffff;
+    text-align: left;
+    font-family: "Helvetica Neue", Helvetica, sans-serif;
+    font-weight: 400;
+  }
+  
+  .container{
+    width: 100%;
+    margin: 0 auto; /* Align container DIV horizontally center */
+    background-color: #ffffff; 
+  }
+
+  .nav{            
+    float: left; 
+    width: 25%; 
+    padding: 10px;
+    box-sizing: border-box;
+    min-height: 170px;
+    background-color: #f0f0f0;
+  }
+
+  .content{
+    float: left;
+    width: 75%;
+    min-height: 170px;
+  }
+  
+  .content h2{
+    font-size: 16px; 
+    margin: 0px;
+  }
+
+  .clearfix:after{
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+  }
+  .footer{
+    background-color: #ffffff; 
+    padding: 10px 0;
+  }
+  .footer p{
+    text-align: center; 
+    margin: 5px;
+  }

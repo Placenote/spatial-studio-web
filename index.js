@@ -379,10 +379,31 @@ function onShareLinkButtonClick()
 }
 
 class MapMetadataSettable {
-  constructor(name, location, userdata){
+  constructor(name, location, userdata) {
     this.name = name;
     this.location = location;
     this.userdata = userdata;
+  }
+}
+
+class MapLocation {
+  constructor(latitude, longitude, altitude) {
+    this.latitude = latitude;
+    this.longitude = longitude;
+    this.altitude = altitude;
+  }
+}
+
+class NoteInfo {
+  constructor(px, py, pz, qx, qy, qz, qw, note) {
+    this.px = px;
+    this.py = py;
+    this.pz = pz;
+    this.qx = qx;
+    this.qy = qy;
+    this.qz = qz;
+    this.qw = qw;
+    this.note = note;
   }
 }
 
@@ -395,22 +416,15 @@ function onSaveButtonClick(){
   Http.setRequestHeader('APIKEY', apiKeyVal);
   Http.setRequestHeader('placeid', mapIdVal);
 
-  const obj = { 
-    notesList: {
-      note: {
-        px:1, py:2, pz:3, qx: 1, qy:2, qz:3, qw:4, description:'hello world!',
-      }
-    }
-  };
-  const data = {
-    name: 'Test', location: {
-      latitude:0, longitude:0, altitude:0 ,
-    }, 
-    userdata: obj,
-  };
+  const location = new MapLocation(0,0,0);
+  const noteInfo = new NoteInfo(1, 2, 3, 1, 2, 3, 4, 'hello world!');
+  var NotesArray =  [];
+  NotesArray.push({note: noteInfo});
+  let notesList = { notesList: NotesArray };
+  const data = new MapMetadataSettable("Nicki Minaj", location, notesList );
 
-  console.log(JSON.stringify({metadata: data}));
-  Http.send(JSON.stringify({metadata:data}));
+  console.log(JSON.stringify({metadata : data}));
+  Http.send(JSON.stringify({metadata: data}));
 
   Http.onreadystatechange = (e) =>
   {

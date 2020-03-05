@@ -1,4 +1,4 @@
-// Gloal variables
+// Global variables
 const hiResImgNames = []; // Overview img filenames
 const hiResPositions = []; // Overview img camera positions
 const hiResQuaternions = []; // Overview img camera rotations
@@ -378,9 +378,51 @@ function onShareLinkButtonClick()
 
 }
 
+class MapMetadataSettable {
+  constructor(name, location, userdata){
+    this.name = name;
+    this.location = location;
+    this.userdata = userdata;
+  }
+}
 
+function onSaveButtonClick(){
+  const Http = new XMLHttpRequest();
+  const url = 'https://us-central1-staging-placenote-sdk.cloudfunctions.net/setMetadata';
+  var apiKeyVal = document.getElementById('apikey').value;
+  var mapIdVal = document.getElementById('mapid').value;
+  Http.open("POST", url, true);
+  Http.setRequestHeader('APIKEY', apiKeyVal);
+  Http.setRequestHeader('placeid', mapIdVal);
 
+  const obj = { 
+    notesList: {
+      note: {
+        px:1, py:2, pz:3, qx: 1, qy:2, qz:3, qw:4, description:'hello world!',
+      }
+    }
+  };
+  const data = {
+    name: 'Test', location: {
+      latitude:0, longitude:0, altitude:0 ,
+    }, 
+    userdata: obj,
+  };
 
+  console.log(JSON.stringify({metadata: data}));
+  Http.send(JSON.stringify({metadata:data}));
+
+  Http.onreadystatechange = (e) =>
+  {
+    if (Http.readyState == 4 && Http.status == 200)
+    {
+        console.log("done");
+    }
+    if (Http.status == 400){
+      console.log("oh no it didn't work");
+    }
+  }
+}
 
 var onDocumentMouseDown = function(event) {
   if(!placenoteMesh.isInitialized()) return;
@@ -427,3 +469,4 @@ var animate = function() {
   renderer.render( scene, camera );
 }
 animate();
+

@@ -4,6 +4,8 @@ const hiResPositions = []; // Overview img camera positions
 const hiResQuaternions = []; // Overview img camera rotations
 const placenoteMesh = new MeshManager.PlacenoteMesh();
 
+var data = null;
+var NotesArray =  [];
 var loadedMeshApiKey = "empty";
 var loadedMeshMapId = "empty";
 
@@ -55,7 +57,8 @@ var onLoad = function(value) {
   scene.add(value);
 
   loadedMeshApiKey = document.getElementById('apikey').value;
-  loadedMeshMapId= document.getElementById('mapid').value;
+  loadedMesxhMapId= document.getElementById('mapid').value;
+
 
   closeModal();
 
@@ -395,33 +398,36 @@ class MapLocation {
 }
 
 class NoteInfo {
-  constructor(px, py, pz, qx, qy, qz, qw, note) {
+  constructor(px, py, pz, note) {
     this.px = px;
     this.py = py;
     this.pz = pz;
-    this.qx = qx;
-    this.qy = qy;
-    this.qz = qz;
-    this.qw = qw;
     this.note = note;
   }
 }
+function onSaveNoteAndContinueClick(){
+  let noteInfo = new NoteInfo(1, 2, 3, 'hello world!');
 
+  if (placenoteMesh.getRaycastPoint()) {
+    console.log("entered raycast!");
+    var point = placenoteMesh.getRaycastPoint();
+    var text = document.getElementById('noteText').value;
+    noteInfo = new NoteInfo(point.x, point.y, point.z, text);
+  }
+  const location = new MapLocation(0,0,0);
+  
+  NotesArray.push({note: noteInfo});
+  let notesList = { notesList: NotesArray };
+  data = new MapMetadataSettable("Nicki Minaj", location, notesList );
+}
 function onSaveButtonClick(){
   const Http = new XMLHttpRequest();
-  const url = 'https://us-central1-staging-placenote-sdk.cloudfunctions.net/setMetadata';
+  const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/setMetadata';
   var apiKeyVal = document.getElementById('apikey').value;
   var mapIdVal = document.getElementById('mapid').value;
   Http.open("POST", url, true);
   Http.setRequestHeader('APIKEY', apiKeyVal);
   Http.setRequestHeader('placeid', mapIdVal);
-
-  const location = new MapLocation(0,0,0);
-  const noteInfo = new NoteInfo(1, 2, 3, 1, 2, 3, 4, 'hello world!');
-  var NotesArray =  [];
-  NotesArray.push({note: noteInfo});
-  let notesList = { notesList: NotesArray };
-  const data = new MapMetadataSettable("Nicki Minaj", location, notesList );
 
   console.log(JSON.stringify({metadata : data}));
   Http.send(JSON.stringify({metadata: data}));
@@ -436,6 +442,21 @@ function onSaveButtonClick(){
       console.log("oh no it didn't work");
     }
   }
+  var table = document.createElement("table");
+  var thead = document.createElement("thead");
+  var headRow = document.createElement("tr");
+  var index = 0;
+  NotesArray.forEach((noteEntry) => {
+    console.log(noteEntry.note)
+    var th = document.createElement("th");
+    th.appendChild(document.createTextNode(index+":"+noteEntry.note.note));
+    headRow.appendChild(th);
+    index++;
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead); 
+
+  document.getElementById("spacer").appendChild(table);
 }
 
 var onDocumentMouseDown = function(event) {

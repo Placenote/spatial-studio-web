@@ -200,11 +200,37 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       var scope = this;
 
       for (var i = 0; i < intersects.length; i++) {
-        if (scope.readyForRaycast && intersects[i].object.name == 'PlacenoteMesh') {
+        if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || 'noteCube')) {
+          
+          if (intersects[i].object.name == 'noteCube') {
+            console.log('color:', intersects[i].object.material);
+            var editButton = document.createElement('button');
+            var noteObj = intersects[i].object;
+            editButton.addEventListener('click', function(){
+              document.getElementById('noteText').value = noteObj.userData.noteText;
+            })
+            editButton.innerHTML = "Edit Button";
+            var deleteButton = document.createElement('button');
+            deleteButton.addEventListener('click', function(){
+              scene.remove(noteObj);
+            })
+            deleteButton.innerHTML = "Delete Button";
+            document.getElementById("noteManager").appendChild(editButton);
+            document.getElementById("noteManager").appendChild(deleteButton);
+            intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFF0000} )
+            console.log('color:', intersects[i].object.material);
+
+            /* var linkModal = document.getElementById("linkmodal");
+            linkModal.style.display = "block";
+            var anchor = document.getElementById('shareheader');
+            anchor.innerHTML = "Note: " + intersects[i].object.userData.noteText;
+            document.getElementById('sharelink').style.display = 'none';*/
+          }
           // Take first intersection with mesh
           if (scope.logging) console.log('Raycast to mesh is true');
           scope.readyForRaycast = false;
           scope.lastRaycastPoint = intersects[i].point;
+          
 
           this._getKeyframeIndexFromPoint(scope.lastRaycastPoint, onKeyframeUpdate, onError, keyframeAmount);
         }

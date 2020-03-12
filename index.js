@@ -469,7 +469,6 @@ function onSaveNotesButtonClick(){
       }
     }
   
-
     var table = document.createElement("table");
     var thead = document.createElement("thead");
     var headRow = document.createElement("tr");
@@ -489,6 +488,7 @@ function onSaveNotesButtonClick(){
 }
 
 function onLoadNotesButtonClick() {
+  console.log( "children",scene.children );
   const Http = new XMLHttpRequest();
   const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
   var apiKeyVal = document.getElementById('apikey').value;
@@ -509,8 +509,10 @@ function onLoadNotesButtonClick() {
       var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
 
       var newCube = new Three.Mesh( geometry, material );
-      newCube.name = "clickCube";
+      newCube.name = "noteCube";
+      newCube.userData = noteObj.note;
       scene.add(newCube);
+      console.log( "children",scene.children );
       cubes.push(newCube);
 
       newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);

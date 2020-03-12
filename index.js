@@ -428,6 +428,11 @@ function onSaveNoteAndContinueClick(){
     let notesList = { notesList: NotesArray };
     data = new MapMetadataSettable("Nicki Minaj", location, notesList );
     document.getElementById('noteText').value = "";
+
+      linkModal.style.display = "block";
+      var anchor = document.getElementById('shareheader');
+      anchor.innerHTML = "Saved Note: "+ text;
+      document.getElementById('sharelink').style.display = 'none';
   }
 }
 function onSaveButtonClick(){
@@ -446,12 +451,20 @@ function onSaveButtonClick(){
   {
     if (Http.readyState == 4 && Http.status == 200)
     {
-        console.log("done");
+      linkModal.style.display = "block";
+      var anchor = document.getElementById('shareheader');
+      anchor.innerHTML = "All notes have been successfully saved!";
+      document.getElementById('sharelink').style.display = 'none';
     }
     if (Http.status == 400){
-      console.log("oh no it didn't work");
+      linkModal.style.display = "block";
+      var anchor = document.getElementById('shareheader');
+      anchor.innerHTML = "Oops, something went wrong! Please try again!";
+      document.getElementById('sharelink').style.display = 'none';
     }
   }
+  
+
   var table = document.createElement("table");
   var thead = document.createElement("thead");
   var headRow = document.createElement("tr");

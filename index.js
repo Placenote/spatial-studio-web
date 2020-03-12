@@ -398,11 +398,11 @@ class MapLocation {
 }
 
 class NoteInfo {
-  constructor(px, py, pz, note) {
+  constructor(px, py, pz, noteText) {
     this.px = px;
     this.py = py;
     this.pz = pz;
-    this.note = note;
+    this.noteText = noteText;
   }
 }
 function onSaveNoteAndContinueClick(){
@@ -429,59 +429,94 @@ function onSaveNoteAndContinueClick(){
     data = new MapMetadataSettable("Nicki Minaj", location, notesList );
     document.getElementById('noteText').value = "";
 
-      linkModal.style.display = "block";
-      var anchor = document.getElementById('shareheader');
-      anchor.innerHTML = "Saved Note: "+ text;
-      document.getElementById('sharelink').style.display = 'none';
+    linkModal.style.display = "block";
+    var anchor = document.getElementById('shareheader');
+    anchor.innerHTML = "Saved Note: "+ text;
+    document.getElementById('sharelink').style.display = 'none';
   }
 }
-function onSaveButtonClick(){
-  const Http = new XMLHttpRequest();
-  const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/setMetadata';
-  var apiKeyVal = document.getElementById('apikey').value;
-  var mapIdVal = document.getElementById('mapid').value;
-  Http.open("POST", url, true);
-  Http.setRequestHeader('APIKEY', apiKeyVal);
-  Http.setRequestHeader('placeid', mapIdVal);
-
-  console.log(JSON.stringify({metadata : data}));
-  Http.send(JSON.stringify({metadata: data}));
-
-  Http.onreadystatechange = (e) =>
-  {
-    if (Http.readyState == 4 && Http.status == 200)
-    {
-      linkModal.style.display = "block";
-      var anchor = document.getElementById('shareheader');
-      anchor.innerHTML = "All notes have been successfully saved!";
-      document.getElementById('sharelink').style.display = 'none';
-    }
-    if (Http.status == 400){
-      linkModal.style.display = "block";
-      var anchor = document.getElementById('shareheader');
-      anchor.innerHTML = "Oops, something went wrong! Please try again!";
-      document.getElementById('sharelink').style.display = 'none';
-    }
+function onSaveNotesButtonClick(){
+  if (data == null){
+    linkModal.style.display = "block";
+    var anchor = document.getElementById('shareheader');
+    anchor.innerHTML = "There are no notes available to be saved!";
+    document.getElementById('sharelink').style.display = 'none';
   }
+  else {
+    const Http = new XMLHttpRequest();
+    const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/setMetadata';
+    var apiKeyVal = document.getElementById('apikey').value;
+    var mapIdVal = document.getElementById('mapid').value;
+    Http.open("POST", url, true);
+    Http.setRequestHeader('APIKEY', apiKeyVal);
+    Http.setRequestHeader('placeid', mapIdVal);
+
+    console.log(JSON.stringify({metadata : data}));
+    Http.send(JSON.stringify({metadata: data}));
+
+    Http.onreadystatechange = (e) => {
+      if (Http.readyState == 4 && Http.status == 200) {
+        linkModal.style.display = "block";
+        var anchor = document.getElementById('shareheader');
+        anchor.innerHTML = "All notes have been successfully saved!";
+        document.getElementById('sharelink').style.display = 'none';
+      }
+      if (Http.status == 400) {
+        linkModal.style.display = "block";
+        var anchor = document.getElementById('shareheader');
+        anchor.innerHTML = "Oops, something went wrong! Please try again!";
+        document.getElementById('sharelink').style.display = 'none';
+      }
+    }
   
 
-  var table = document.createElement("table");
-  var thead = document.createElement("thead");
-  var headRow = document.createElement("tr");
-  var index = 0;
-  NotesArray.forEach((noteEntry) => {
-    console.log(noteEntry.note)
-    var th = document.createElement("th");
-    th.appendChild(document.createTextNode(index+":"+noteEntry.note.note));
-    headRow.appendChild(th);
-    index++;
-  });
-  thead.appendChild(headRow);
-  table.appendChild(thead); 
+    var table = document.createElement("table");
+    var thead = document.createElement("thead");
+    var headRow = document.createElement("tr");
+    var index = 0;
+    NotesArray.forEach((noteEntry) => {
+      console.log(noteEntry.note)
+      var th = document.createElement("th");
+      th.appendChild(document.createTextNode(index+":"+noteEntry.note.noteText));
+      headRow.appendChild(th);
+      index++;
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead); 
 
-  document.getElementById("spacer").appendChild(table);
+    document.getElementById("spacer").appendChild(table);
+  }
 }
 
+function onLoadNotesButtonClick() {
+  const Http = new XMLHttpRequest();
+  const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
+  var apiKeyVal = document.getElementById('apikey').value;
+  var mapIdVal = document.getElementById('mapid').value;
+  Http.open("GET", url, true);
+  Http.setRequestHeader('APIKEY', apiKeyVal);
+  Http.setRequestHeader('placeid', mapIdVal);
+  Http.send();
+
+  Http.onreadystatechange = (e) => {
+    const jsonRes = JSON.parse(Http.response);
+    console.log('data', jsonRes.metadata);
+    let noteObjArray = jsonRes.metadata.userdata.notesList;
+    noteObjArray.forEach((noteObj) => {
+      console.log("note",noteObj.note.noteText);
+      // Add cube at raycast point
+      var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
+      var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
+
+      var newCube = new Three.Mesh( geometry, material );
+      newCube.name = "clickCube";
+      scene.add(newCube);
+      cubes.push(newCube);
+
+      newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
+    })
+  }
+}
 var onDocumentMouseDown = function(event) {
   if(!placenoteMesh.isInitialized()) return;
 

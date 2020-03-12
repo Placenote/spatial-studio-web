@@ -406,19 +406,29 @@ class NoteInfo {
   }
 }
 function onSaveNoteAndContinueClick(){
-  let noteInfo = new NoteInfo(1, 2, 3, 'hello world!');
-
-  if (placenoteMesh.getRaycastPoint()) {
-    console.log("entered raycast!");
+  if (!scene.getObjectByName("clickCube")) {
+    linkModal.style.display = "block";
+    var anchor = document.getElementById('shareheader');
+    anchor.innerHTML = "Double-click on a point on the mesh to set a note!";
+    document.getElementById('sharelink').style.display = 'none';
+  }
+  else if (document.getElementById('noteText').value == "") {
+    linkModal.style.display = "block";
+    var anchor = document.getElementById('shareheader');
+    anchor.innerHTML = "The note cannot be empty! Please enter text!";
+    document.getElementById('sharelink').style.display = 'none';
+  }
+  else {
     var point = placenoteMesh.getRaycastPoint();
     var text = document.getElementById('noteText').value;
-    noteInfo = new NoteInfo(point.x, point.y, point.z, text);
-  }
-  const location = new MapLocation(0,0,0);
+    var noteInfo = new NoteInfo(point.x, point.y, point.z, text);
+    const location = new MapLocation(0,0,0);
   
-  NotesArray.push({note: noteInfo});
-  let notesList = { notesList: NotesArray };
-  data = new MapMetadataSettable("Nicki Minaj", location, notesList );
+    NotesArray.push({note: noteInfo});
+    let notesList = { notesList: NotesArray };
+    data = new MapMetadataSettable("Nicki Minaj", location, notesList );
+    document.getElementById('noteText').value = "";
+  }
 }
 function onSaveButtonClick(){
   const Http = new XMLHttpRequest();

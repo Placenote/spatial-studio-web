@@ -451,7 +451,6 @@ function onSaveNotesButtonClick(){
     Http.setRequestHeader('APIKEY', apiKeyVal);
     Http.setRequestHeader('placeid', mapIdVal);
 
-    console.log(JSON.stringify({metadata : data}));
     Http.send(JSON.stringify({metadata: data}));
 
     Http.onreadystatechange = (e) => {
@@ -500,10 +499,9 @@ function onLoadNotesButtonClick() {
 
   Http.onreadystatechange = (e) => {
     const jsonRes = JSON.parse(Http.response);
-    console.log('data', jsonRes.metadata);
     let noteObjArray = jsonRes.metadata.userdata.notesList;
+    NotesArray.push(noteObjArray);
     noteObjArray.forEach((noteObj) => {
-      console.log("note",noteObj.note.noteText);
       // Add cube at raycast point
       var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
       var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
@@ -512,7 +510,6 @@ function onLoadNotesButtonClick() {
       newCube.name = "noteCube";
       newCube.userData = noteObj.note;
       scene.add(newCube);
-      console.log( "children",scene.children );
       cubes.push(newCube);
 
       newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);

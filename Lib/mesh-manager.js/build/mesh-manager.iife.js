@@ -20,17 +20,71 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       this.readyForRaycast = true;
       this.lastRaycastPoint;
       this.logging = false;
+
+      this.meshMetadata = null;
     }
+    /**
+    * @desc HELPER METHOD: Retrieves mesh metadata. 
+    * Makes Http request to get metadata
+    */
+    PlacenoteMesh.prototype._getMeshMetadata = function () {
+      console.log('entered');
+      const Http = new XMLHttpRequest();
+      const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
+      var apiKeyVal = document.getElementById('apikey').value;
+      var mapIdVal = document.getElementById('mapid').value;
+      Http.open("GET", url, true);
+      Http.setRequestHeader('APIKEY', apiKeyVal);
+      Http.setRequestHeader('placeid', mapIdVal);
+      Http.send();
+      Http.onreadystatechange = (e) => {
+        const jsonRes = JSON.parse(Http.response);
+        this.meshMetadata = jsonRes;
+        return;
+      }
+    };
+
+     /**
+    * @desc HELPER METHOD: Sets mesh metadata. 
+    * Makes Http request to set metadata
+    */
+   PlacenoteMesh.prototype._setMeshMetadata = function (data) {
+    const Http = new XMLHttpRequest();
+    const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/setMetadata';
+    var apiKeyVal = document.getElementById('apikey').value;
+    var mapIdVal = document.getElementById('mapid').value;
+    Http.open("POST", url, true);
+    Http.setRequestHeader('APIKEY', apiKeyVal);
+    Http.setRequestHeader('placeid', mapIdVal);
+
+    Http.send(JSON.stringify(data));
+
+    Http.onreadystatechange = (e) => {
+      if (Http.readyState == 4 && Http.status == 200) {
+        linkModal.style.display = "block";
+        var anchor = document.getElementById('shareheader');
+        anchor.innerHTML = "Note information has been saved!";
+        document.getElementById('sharelink').style.display = 'none';
+        this.meshMetadata = data;
+      }
+      if (Http.status == 400) {
+        linkModal.style.display = "block";
+        var anchor = document.getElementById('shareheader');
+        anchor.innerHTML = "Oops, something went wrong! Please try again!";
+        document.getElementById('sharelink').style.display = 'none';
+      }
+    }
+   }
+  
     /**
     * @desc HELPER METHOD: initializes mesh for clickety click. 
     * Makes Http request to download dataset.json
     * Calls _createClicketyClickCameras()
     * @param onError (Optional) Error callback that receives the error as an argument
     */
-
-
     PlacenoteMesh.prototype._init = function (onError) {
       if (this.logging) console.log('Starting Initialization');
+      this._getMeshMetadata();
       var scope = this;
       var xhr = new XMLHttpRequest(); // Get URL for dataset.json
 
@@ -201,9 +255,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
 
       for (var i = 0; i < intersects.length; i++) {
         if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || 'noteCube')) {
-          
           if (intersects[i].object.name == 'noteCube') {
-            console.log('color:', intersects[i].object.material);
             var editButton = document.createElement('button');
             var noteObj = intersects[i].object;
             editButton.addEventListener('click', function(){
@@ -211,14 +263,23 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
             })
             editButton.innerHTML = "Edit Button";
             var deleteButton = document.createElement('button');
+            delete this.meshMetadata.metadata.created;
+            let meshMetadata = this.meshMetadata;
             deleteButton.addEventListener('click', function(){
+              meshMetadata.metadata.userdata.notesList.forEach((note) => {
+                console.log('picca', note);
+                if (note.note.noteText == noteObj.userData.noteText) {
+                  let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
+                  meshMetadata.metadata.userdata.notesList.splice(index, 1);
+                }
+              })
+              scope._setMeshMetadata(meshMetadata);
               scene.remove(noteObj);
             })
             deleteButton.innerHTML = "Delete Button";
             document.getElementById("noteManager").appendChild(editButton);
             document.getElementById("noteManager").appendChild(deleteButton);
             intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFF0000} )
-            console.log('color:', intersects[i].object.material);
 
             /* var linkModal = document.getElementById("linkmodal");
             linkModal.style.display = "block";

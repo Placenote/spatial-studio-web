@@ -258,16 +258,28 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
           if (intersects[i].object.name == 'noteCube') {
             var editButton = document.createElement('button');
             var noteObj = intersects[i].object;
-            editButton.addEventListener('click', function(){
-              document.getElementById('noteText').value = noteObj.userData.noteText;
-            })
-            editButton.innerHTML = "Edit Button";
-            var deleteButton = document.createElement('button');
             delete this.meshMetadata.metadata.created;
             let meshMetadata = this.meshMetadata;
+
+            editButton.addEventListener('click', function(){
+              document.getElementById('noteText').value = noteObj.userData.noteText;
+              var editSaveButton = document.createElement('button');
+              editSaveButton.addEventListener('click', function(){
+                meshMetadata.metadata.userdata.notesList.forEach((note) => {
+                  if (note.note.noteText == noteObj.userData.noteText) {
+                    note.note.noteText = document.getElementById('noteText').value;
+                  }
+                  scope._setMeshMetadata(meshMetadata);
+                })
+              })
+              editSaveButton.innerHTML = "Edit-Save Button";
+              document.getElementById("noteManager").appendChild(editSaveButton);
+            })
+            editButton.innerHTML = "Edit Button";
+
+            var deleteButton = document.createElement('button');
             deleteButton.addEventListener('click', function(){
               meshMetadata.metadata.userdata.notesList.forEach((note) => {
-                console.log('picca', note);
                 if (note.note.noteText == noteObj.userData.noteText) {
                   let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                   meshMetadata.metadata.userdata.notesList.splice(index, 1);

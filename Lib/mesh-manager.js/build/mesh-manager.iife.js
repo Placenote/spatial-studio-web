@@ -255,15 +255,27 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
 
       for (var i = 0; i < intersects.length; i++) {
         if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || 'noteCube')) {
+          // Removes the edit, edit-save, and delete buttons after each double-click on mesh
+          if (document.getElementsByClassName("noteModifiers")) {
+            var elements = document.getElementsByClassName("noteModifiers");
+            while(elements.length > 0){
+              elements[0].parentNode.removeChild(elements[0]);
+            }
+          }
+          // Logic if raycast hits an existing object
           if (intersects[i].object.name == 'noteCube') {
+            document.getElementById('noteText').value = ""; // Clears the input console when a note is clicked
+            
             var editButton = document.createElement('button');
+            var editSaveButton = document.createElement('button');
             var noteObj = intersects[i].object;
-            delete this.meshMetadata.metadata.created;
+            delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
             let meshMetadata = this.meshMetadata;
 
+            // Logic for "Edit Button" when a note is clicked
             editButton.addEventListener('click', function(){
               document.getElementById('noteText').value = noteObj.userData.noteText;
-              var editSaveButton = document.createElement('button');
+              
               editSaveButton.addEventListener('click', function(){
                 meshMetadata.metadata.userdata.notesList.forEach((note) => {
                   if (note.note.noteText == noteObj.userData.noteText) {
@@ -273,11 +285,14 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 })
               })
               editSaveButton.innerHTML = "Edit-Save Button";
+              editSaveButton.className = "noteModifiers";
               document.getElementById("noteManager").appendChild(editSaveButton);
             })
             editButton.innerHTML = "Edit Button";
+            editButton.className = "noteModifiers";
 
             var deleteButton = document.createElement('button');
+            // Logic for "Delete Button" when a note is clicked
             deleteButton.addEventListener('click', function(){
               meshMetadata.metadata.userdata.notesList.forEach((note) => {
                 if (note.note.noteText == noteObj.userData.noteText) {
@@ -289,15 +304,11 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               scene.remove(noteObj);
             })
             deleteButton.innerHTML = "Delete Button";
+            deleteButton.className = "noteModifiers";
+
             document.getElementById("noteManager").appendChild(editButton);
             document.getElementById("noteManager").appendChild(deleteButton);
-            intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFF0000} )
-
-            /* var linkModal = document.getElementById("linkmodal");
-            linkModal.style.display = "block";
-            var anchor = document.getElementById('shareheader');
-            anchor.innerHTML = "Note: " + intersects[i].object.userData.noteText;
-            document.getElementById('sharelink').style.display = 'none';*/
+            intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFF0000} ); // Changes color of object when clicked on
           }
           // Take first intersection with mesh
           if (scope.logging) console.log('Raycast to mesh is true');

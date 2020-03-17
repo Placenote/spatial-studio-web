@@ -443,6 +443,7 @@ function onSaveNotesButtonClick(){
     document.getElementById('sharelink').style.display = 'none';
   }
   else {
+    console.log('log:',data);
     const Http = new XMLHttpRequest();
     const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/setMetadata';
     var apiKeyVal = document.getElementById('apikey').value;
@@ -467,27 +468,10 @@ function onSaveNotesButtonClick(){
         document.getElementById('sharelink').style.display = 'none';
       }
     }
-  
-    var table = document.createElement("table");
-    var thead = document.createElement("thead");
-    var headRow = document.createElement("tr");
-    var index = 0;
-    NotesArray.forEach((noteEntry) => {
-      console.log(noteEntry.note)
-      var th = document.createElement("th");
-      th.appendChild(document.createTextNode(index+":"+noteEntry.note.noteText));
-      headRow.appendChild(th);
-      index++;
-    });
-    thead.appendChild(headRow);
-    table.appendChild(thead); 
-
-    document.getElementById("spacer").appendChild(table);
   }
 }
 
 function onLoadNotesButtonClick() {
-  console.log( "children",scene.children );
   const Http = new XMLHttpRequest();
   const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
   var apiKeyVal = document.getElementById('apikey').value;
@@ -499,21 +483,29 @@ function onLoadNotesButtonClick() {
 
   Http.onreadystatechange = (e) => {
     const jsonRes = JSON.parse(Http.response);
-    let noteObjArray = jsonRes.metadata.userdata.notesList;
-    NotesArray.push(noteObjArray);
-    noteObjArray.forEach((noteObj) => {
-      // Add cube at raycast point
-      var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
-      var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
+    if (!jsonRes.metadata.userdata) {
+      linkModal.style.display = "block";
+      var anchor = document.getElementById('shareheader');
+      anchor.innerHTML = "There are no existing notes for this mesh!";
+      document.getElementById('sharelink').style.display = 'none';
+    }
+    else {
+      let noteObjArray = jsonRes.metadata.userdata.notesList;
+      NotesArray = noteObjArray;
+      noteObjArray.forEach((noteObj) => {
+        // Add cube at raycast point
+        var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
+        var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
 
-      var newCube = new Three.Mesh( geometry, material );
-      newCube.name = "noteCube";
-      newCube.userData = noteObj.note;
-      scene.add(newCube);
-      cubes.push(newCube);
+        var newCube = new Three.Mesh( geometry, material );
+        newCube.name = "noteCube";
+        newCube.userData = noteObj.note;
+        scene.add(newCube);
+        cubes.push(newCube);
 
-      newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
-    })
+        newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
+      })
+    }
   }
 }
 var onDocumentMouseDown = function(event) {

@@ -472,6 +472,11 @@ function onSaveNotesButtonClick(){
 }
 
 function onLoadNotesButtonClick() {
+  // Removes all notes from the scene 
+  while (scene.getObjectByName("noteCube")) {
+    console.log('doing something');
+    scene.remove(scene.getObjectByName("noteCube"));
+  }
   const Http = new XMLHttpRequest();
   const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
   var apiKeyVal = document.getElementById('apikey').value;
@@ -493,6 +498,7 @@ function onLoadNotesButtonClick() {
       let noteObjArray = jsonRes.metadata.userdata.notesList;
       NotesArray = noteObjArray;
       noteObjArray.forEach((noteObj) => {
+
         // Add cube at raycast point
         var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
         var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
@@ -500,6 +506,7 @@ function onLoadNotesButtonClick() {
         var newCube = new Three.Mesh( geometry, material );
         newCube.name = "noteCube";
         newCube.userData = noteObj.note;
+        
         scene.add(newCube);
         cubes.push(newCube);
 

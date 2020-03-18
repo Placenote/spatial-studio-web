@@ -257,6 +257,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
         if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || 'noteCube')) {
           // Removes the edit, edit-save, and delete buttons after each double-click on mesh
           if (document.getElementsByClassName("noteModifiers")) {
+            document.getElementById('noteText').value = ""; // Clears the input console when a note is clicked
             var elements = document.getElementsByClassName("noteModifiers");
             while(elements.length > 0){
               elements[0].parentNode.removeChild(elements[0]);
@@ -264,8 +265,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
           }
           // Logic if raycast hits an existing object
           if (intersects[i].object.name == 'noteCube') {
-            document.getElementById('noteText').value = ""; // Clears the input console when a note is clicked
-            
             var editButton = document.createElement('button');
             var editSaveButton = document.createElement('button');
             var noteObj = intersects[i].object;
@@ -281,8 +280,8 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                   if (note.note.noteText == noteObj.userData.noteText) {
                     note.note.noteText = document.getElementById('noteText').value;
                   }
-                  scope._setMeshMetadata(meshMetadata);
                 })
+                scope._setMeshMetadata(meshMetadata);
               })
               editSaveButton.innerHTML = "Edit-Save Button";
               editSaveButton.className = "noteModifiers";

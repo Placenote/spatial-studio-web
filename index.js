@@ -495,6 +495,7 @@ function onLoadNotesButtonClick() {
       document.getElementById('sharelink').style.display = 'none';
     }
     else {
+      placenoteMesh.meshMetadata = jsonRes;
       let noteObjArray = jsonRes.metadata.userdata.notesList;
       NotesArray = noteObjArray;
       noteObjArray.forEach((noteObj) => {

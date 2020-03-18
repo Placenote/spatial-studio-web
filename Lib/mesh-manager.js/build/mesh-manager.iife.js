@@ -270,11 +270,9 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
             var noteObj = intersects[i].object;
             delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
             let meshMetadata = this.meshMetadata;
-
             // Logic for "Edit Button" when a note is clicked
             editButton.addEventListener('click', function(){
               document.getElementById('noteText').value = noteObj.userData.noteText;
-              
               editSaveButton.addEventListener('click', function(){
                 meshMetadata.metadata.userdata.notesList.forEach((note) => {
                   if (note.note.noteText == noteObj.userData.noteText) {
@@ -297,10 +295,10 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 if (note.note.noteText == noteObj.userData.noteText) {
                   let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                   meshMetadata.metadata.userdata.notesList.splice(index, 1);
+                  scene.remove(noteObj);
                 }
               })
               scope._setMeshMetadata(meshMetadata);
-              scene.remove(noteObj);
             })
             deleteButton.innerHTML = "Delete Button";
             deleteButton.className = "noteModifiers";
@@ -313,7 +311,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
           if (scope.logging) console.log('Raycast to mesh is true');
           scope.readyForRaycast = false;
           scope.lastRaycastPoint = intersects[i].point;
-          
 
           this._getKeyframeIndexFromPoint(scope.lastRaycastPoint, onKeyframeUpdate, onError, keyframeAmount);
         }
@@ -325,7 +322,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
     * @desc PUBLIC METHOD: Get point of last raycast intersection.
     * @return THREE.Vector3 of raycast intersection point
     */
-
 
     PlacenoteMesh.prototype.getRaycastPoint = function () {
       if (this.lastRaycastPoint) return this.lastRaycastPoint;

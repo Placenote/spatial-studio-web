@@ -28,7 +28,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
     * Makes Http request to get metadata
     */
     PlacenoteMesh.prototype._getMeshMetadata = function () {
-      console.log('entered');
       const Http = new XMLHttpRequest();
       const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
       var apiKeyVal = document.getElementById('apikey').value;
@@ -281,11 +280,11 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 })
                 scope._setMeshMetadata(meshMetadata);
               })
-              editSaveButton.innerHTML = "Edit-Save Button";
+              editSaveButton.innerHTML = "Edit-Save";
               editSaveButton.className = "noteModifiers";
               document.getElementById("noteManager").appendChild(editSaveButton);
             })
-            editButton.innerHTML = "Edit Button";
+            editButton.innerHTML = "Edit Note";
             editButton.className = "noteModifiers";
 
             var deleteButton = document.createElement('button');
@@ -295,12 +294,24 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 if (note.note.noteText == noteObj.userData.noteText) {
                   let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                   meshMetadata.metadata.userdata.notesList.splice(index, 1);
-                  scene.remove(noteObj);
+                  scope._setMeshMetadata(meshMetadata);
                 }
               })
-              scope._setMeshMetadata(meshMetadata);
+              // Removes all notes from the scene 
+              while (scene.getObjectByName("noteCube")) {
+                scene.remove(scene.getObjectByName("noteCube"));
+              }
+              meshMetadata.metadata.userdata.notesList.forEach((noteObj) => {
+                var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
+                var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
+                var newCube = new Three.Mesh( geometry, material );
+                newCube.name = "noteCube";
+                newCube.userData = noteObj.note;
+                newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
+                scene.add(newCube);
+              })
             })
-            deleteButton.innerHTML = "Delete Button";
+            deleteButton.innerHTML = "Delete Note";
             deleteButton.className = "noteModifiers";
 
             document.getElementById("noteManager").appendChild(editButton);

@@ -47,7 +47,6 @@ var onKeyFrameUpdate = function(keyframeInfo, camera) {
 
 var onLoad = function(value) {
   //
-
   var selectedObject = scene.getObjectByName('PlacenoteMesh');
   if(selectedObject) scene.remove( selectedObject );
 
@@ -55,10 +54,8 @@ var onLoad = function(value) {
   if(selectedCube) scene.remove( selectedCube );
 
   scene.add(value);
-
   loadedMeshApiKey = document.getElementById('apikey').value;
   loadedMesxhMapId= document.getElementById('mapid').value;
-
 
   closeModal();
 
@@ -312,7 +309,7 @@ controls.enableZoom = true;
 controls.maxPolarAngle = Math.PI/2;
 
 scene.add( new Three.AmbientLight());
-var cubes = []
+var cubes = [];
 var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
 var material = new Three.MeshBasicMaterial( {color: 0xFFF200} );
 material.wireframe = true;
@@ -425,7 +422,7 @@ function onSaveNoteAndContinueClick(){
     const location = new MapLocation(0,0,0);
   
     NotesArray.push({note: noteInfo});
-    let notesList = { notesList: NotesArray };
+    let notesList = {notesList: NotesArray};
     data = new MapMetadataSettable("Nicki Minaj", location, notesList );
     document.getElementById('noteText').value = "";
 
@@ -443,7 +440,6 @@ function onSaveNotesButtonClick(){
     document.getElementById('sharelink').style.display = 'none';
   }
   else {
-    console.log('log:',data);
     const Http = new XMLHttpRequest();
     const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/setMetadata';
     var apiKeyVal = document.getElementById('apikey').value;
@@ -460,6 +456,7 @@ function onSaveNotesButtonClick(){
         var anchor = document.getElementById('shareheader');
         anchor.innerHTML = "All notes have been successfully saved!";
         document.getElementById('sharelink').style.display = 'none';
+        onLoadNotesButtonClick();
       }
       if (Http.status == 400) {
         linkModal.style.display = "block";
@@ -474,7 +471,6 @@ function onSaveNotesButtonClick(){
 function onLoadNotesButtonClick() {
   // Removes all notes from the scene 
   while (scene.getObjectByName("noteCube")) {
-    console.log('doing something');
     scene.remove(scene.getObjectByName("noteCube"));
   }
   const Http = new XMLHttpRequest();
@@ -507,10 +503,8 @@ function onLoadNotesButtonClick() {
         var newCube = new Three.Mesh( geometry, material );
         newCube.name = "noteCube";
         newCube.userData = noteObj.note;
-        
         scene.add(newCube);
         cubes.push(newCube);
-
         newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
       })
     }

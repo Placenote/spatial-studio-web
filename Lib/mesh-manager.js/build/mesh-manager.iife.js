@@ -276,6 +276,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 meshMetadata.metadata.userdata.notesList.forEach((note) => {
                   if (note.note.noteText == noteObj.userData.noteText) {
                     note.note.noteText = document.getElementById('noteText').value;
+                    noteObj.userData.noteText = document.getElementById('noteText').value;
                   }
                 })
                 scope._setMeshMetadata(meshMetadata);

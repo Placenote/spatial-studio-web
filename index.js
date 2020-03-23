@@ -55,7 +55,7 @@ var onLoad = function(value) {
 
   scene.add(value);
   loadedMeshApiKey = document.getElementById('apikey').value;
-  loadedMesxhMapId= document.getElementById('mapid').value;
+  loadedMeshMapId = document.getElementById('mapid').value;
 
   closeModal();
 

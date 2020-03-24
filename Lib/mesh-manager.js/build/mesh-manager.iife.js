@@ -289,6 +289,12 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
             var deleteButton = document.createElement('button');
             // Logic for "Delete Button" when a note is clicked
             deleteButton.addEventListener('click', function(){
+              // Removes Edit, Delete, and Edit-Save buttons when a note is deleted
+              var elements = document.getElementsByClassName("noteModifiers");
+              while(elements.length > 0){
+                elements[0].parentNode.removeChild(elements[0]);
+              }
+              // Modifies notes list by removing the note being deleted from the array
               meshMetadata.metadata.userdata.notesList.forEach((note) => {
                 if (note.note.noteText == noteObj.userData.noteText) {
                   let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
@@ -300,6 +306,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               while (scene.getObjectByName("noteCube")) {
                 scene.remove(scene.getObjectByName("noteCube"));
               }
+              // Adds all notes to the scene using the modified metadata
               meshMetadata.metadata.userdata.notesList.forEach((noteObj) => {
                 var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
                 var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );

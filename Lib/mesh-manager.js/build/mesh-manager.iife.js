@@ -20,13 +20,12 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       this.readyForRaycast = true;
       this.lastRaycastPoint;
       this.logging = false;
-
       this.meshMetadata = null;
     }
     /**
-    * @desc HELPER METHOD: Retrieves mesh metadata. 
-    * Makes Http request to get metadata
-    */
+     * @desc HELPER METHOD: Retrieves mesh metadata. 
+     * Makes Http request to get metadata
+     */
     PlacenoteMesh.prototype._getMeshMetadata = function () {
       const Http = new XMLHttpRequest();
       const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
@@ -74,7 +73,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       }
     }
    }
-  
     /**
     * @desc HELPER METHOD: initializes mesh for clickety click. 
     * Makes Http request to download dataset.json
@@ -253,7 +251,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       var scope = this;
 
       for (var i = 0; i < intersects.length; i++) {
-        if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || 'noteCube')) {
+        if (scope.readyForRaycast && intersects[i].object.name == ('PlacenoteMesh' || 'noteCube')) {
           // Removes the edit, edit-save, and delete buttons after each double-click on mesh
           if (document.getElementsByClassName("noteModifiers")) {
             document.getElementById('noteText').value = ""; // Clears the input console when a note is clicked

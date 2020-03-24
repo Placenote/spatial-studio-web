@@ -253,7 +253,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       var scope = this;
 
       for (var i = 0; i < intersects.length; i++) {
-        if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || 'noteCube')) {
+        if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || intersects[i].object.name == 'noteCube')) {
           // Removes the edit, edit-save, and delete buttons after each double-click on mesh
           if (document.getElementsByClassName("noteModifiers")) {
             document.getElementById('noteText').value = ""; // Clears the input console when a note is clicked

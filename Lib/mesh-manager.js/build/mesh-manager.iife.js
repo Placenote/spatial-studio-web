@@ -20,13 +20,12 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       this.readyForRaycast = true;
       this.lastRaycastPoint;
       this.logging = false;
-
       this.meshMetadata = null;
     }
     /**
-    * @desc HELPER METHOD: Retrieves mesh metadata. 
-    * Makes Http request to get metadata
-    */
+     * @desc HELPER METHOD: Retrieves mesh metadata. 
+     * Makes Http request to get metadata
+     */
     PlacenoteMesh.prototype._getMeshMetadata = function () {
       const Http = new XMLHttpRequest();
       const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
@@ -74,7 +73,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       }
     }
    }
-  
     /**
     * @desc HELPER METHOD: initializes mesh for clickety click. 
     * Makes Http request to download dataset.json

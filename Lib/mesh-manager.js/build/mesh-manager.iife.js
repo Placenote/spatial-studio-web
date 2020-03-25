@@ -25,7 +25,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
     /**
      * @desc HELPER METHOD: Retrieves mesh metadata. 
      * Makes Http request to get metadata
-     */
+     */  
     PlacenoteMesh.prototype._getMeshMetadata = function () {
       const Http = new XMLHttpRequest();
       const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
@@ -36,9 +36,24 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       Http.setRequestHeader('placeid', mapIdVal);
       Http.send();
       Http.onreadystatechange = (e) => {
-        const jsonRes = JSON.parse(Http.response);
-        this.meshMetadata = jsonRes;
-        return;
+      const jsonRes = JSON.parse(Http.response);
+      this.meshMetadata = jsonRes;
+      if (jsonRes.metadata.userdata) { 
+        NotesArray = jsonRes.metadata.userdata.notesList;
+      }
+      NotesArray.forEach((noteObj) => {
+        // Loads cubes into the scene
+        var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
+        var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
+
+        var newCube = new Three.Mesh( geometry, material );
+        newCube.name = "noteCube";
+        newCube.userData = noteObj.note;
+        scene.add(newCube);
+        cubes.push(newCube);
+        newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
+      })
+        return this.meshMetadata;
       }
     };
 
@@ -57,8 +72,13 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
 
     Http.send(JSON.stringify(data));
 
+    linkModal.style.display = "block";
+    var anchor = document.getElementById('shareheader');
+    anchor.innerHTML = "Deleting note...";
+    document.getElementById('sharelink').style.display = 'none';
     Http.onreadystatechange = (e) => {
       if (Http.readyState == 4 && Http.status == 200) {
+        closeModal();
         linkModal.style.display = "block";
         var anchor = document.getElementById('shareheader');
         anchor.innerHTML = "Note information has been saved!";
@@ -271,12 +291,13 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
             editButton.addEventListener('click', function(){
               document.getElementById('noteText').value = noteObj.userData.noteText;
               editSaveButton.addEventListener('click', function(){
-                meshMetadata.metadata.userdata.notesList.forEach((note) => {
+                NotesArray.forEach((note) => {
                   if (note.note.noteText == noteObj.userData.noteText) {
                     note.note.noteText = document.getElementById('noteText').value;
                     noteObj.userData.noteText = document.getElementById('noteText').value;
                   }
                 })
+                meshMetadata.metadata.userdata.notesList = NotesArray;
                 scope._setMeshMetadata(meshMetadata);
               })
               editSaveButton.innerHTML = "Edit-Save";
@@ -295,10 +316,11 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 elements[0].parentNode.removeChild(elements[0]);
               }
               // Modifies notes list by removing the note being deleted from the array
-              meshMetadata.metadata.userdata.notesList.forEach((note) => {
+              NotesArray.forEach((note) => {
                 if (note.note.noteText == noteObj.userData.noteText) {
                   let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                   meshMetadata.metadata.userdata.notesList.splice(index, 1);
+                  meshMetadata.metadata.userdata.notesList = NotesArray;
                   scope._setMeshMetadata(meshMetadata);
                 }
               })

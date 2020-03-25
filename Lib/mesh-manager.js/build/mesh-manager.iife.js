@@ -36,8 +36,21 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       Http.setRequestHeader('placeid', mapIdVal);
       Http.send();
       Http.onreadystatechange = (e) => {
-        const jsonRes = JSON.parse(Http.response);
-        this.meshMetadata = jsonRes;
+      const jsonRes = JSON.parse(Http.response);
+      this.meshMetadata = jsonRes;
+      let noteObjArray = jsonRes.metadata.userdata.notesList;
+      noteObjArray.forEach((noteObj) => {
+        // Loads cubes into the scene
+        var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
+        var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
+
+        var newCube = new Three.Mesh( geometry, material );
+        newCube.name = "noteCube";
+        newCube.userData = noteObj.note;
+        scene.add(newCube);
+        cubes.push(newCube);
+        newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
+      })
         return;
       }
     };

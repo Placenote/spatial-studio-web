@@ -456,7 +456,6 @@ function onSaveNotesButtonClick(){
         var anchor = document.getElementById('shareheader');
         anchor.innerHTML = "All notes have been successfully saved!";
         document.getElementById('sharelink').style.display = 'none';
-        onLoadNotesButtonClick();
       }
       if (Http.status == 400) {
         linkModal.style.display = "block";
@@ -468,48 +467,6 @@ function onSaveNotesButtonClick(){
   }
 }
 
-function onLoadNotesButtonClick() {
-  // Removes all notes from the scene 
-  while (scene.getObjectByName("noteCube")) {
-    scene.remove(scene.getObjectByName("noteCube"));
-  }
-  const Http = new XMLHttpRequest();
-  const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
-  var apiKeyVal = document.getElementById('apikey').value;
-  var mapIdVal = document.getElementById('mapid').value;
-  Http.open("GET", url, true);
-  Http.setRequestHeader('APIKEY', apiKeyVal);
-  Http.setRequestHeader('placeid', mapIdVal);
-  Http.send();
-
-  Http.onreadystatechange = (e) => {
-    const jsonRes = JSON.parse(Http.response);
-    if (!jsonRes.metadata.userdata) {
-      linkModal.style.display = "block";
-      var anchor = document.getElementById('shareheader');
-      anchor.innerHTML = "There are no existing notes for this mesh!";
-      document.getElementById('sharelink').style.display = 'none';
-    }
-    else {
-      placenoteMesh.meshMetadata = jsonRes;
-      let noteObjArray = jsonRes.metadata.userdata.notesList;
-      NotesArray = noteObjArray;
-      noteObjArray.forEach((noteObj) => {
-
-        // Add cube at raycast point
-        var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
-        var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
-
-        var newCube = new Three.Mesh( geometry, material );
-        newCube.name = "noteCube";
-        newCube.userData = noteObj.note;
-        scene.add(newCube);
-        cubes.push(newCube);
-        newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
-      })
-    }
-  }
-}
 var onDocumentMouseDown = function(event) {
   if(!placenoteMesh.isInitialized()) return;
 

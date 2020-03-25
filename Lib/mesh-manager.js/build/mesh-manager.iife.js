@@ -53,7 +53,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
         cubes.push(newCube);
         newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
       })
-        return this.meshMetadata;
+      return this.meshMetadata;
       }
     };
 

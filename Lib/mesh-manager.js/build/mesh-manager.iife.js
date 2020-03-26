@@ -276,17 +276,28 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
           if (document.getElementsByClassName("noteModifiers")) {
             document.getElementById('noteText').value = ""; // Clears the input console when a note is clicked
             var elements = document.getElementsByClassName("noteModifiers");
-            while(elements.length > 0){
+            while (elements.length > 0) {
               elements[0].parentNode.removeChild(elements[0]);
             }
           }
           // Logic if raycast hits an existing object
           if (intersects[i].object.name == 'noteCube') {
+            
             var editButton = document.createElement('button');
             var editSaveButton = document.createElement('button');
             var noteObj = intersects[i].object;
             delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
             let meshMetadata = this.meshMetadata;
+
+            const params = {
+              textField: noteObj.userData.noteText,
+            }
+            const gui = new dat.GUI();
+            gui.add(params, "textField").onFinishChange(function (value) {
+                //Do something with the new value
+                console.log(value);
+            });
+
             // Logic for "Edit Button" when a note is clicked
             editButton.addEventListener('click', function(){
               document.getElementById('noteText').value = noteObj.userData.noteText;

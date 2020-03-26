@@ -294,8 +294,14 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
             }
             const gui = new dat.GUI();
             gui.add(params, "textField").onFinishChange(function (value) {
-                //Do something with the new value
-                console.log(value);
+              NotesArray.forEach((note) => {
+                if (note.note.noteText == noteObj.userData.noteText) {
+                  note.note.noteText = value;
+                  noteObj.userData.noteText = value;
+                }
+              })
+              meshMetadata.metadata.userdata.notesList = NotesArray;
+              scope._setMeshMetadata(meshMetadata);
             });
 
             // Logic for "Edit Button" when a note is clicked

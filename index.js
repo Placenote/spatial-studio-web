@@ -432,8 +432,13 @@ function onSaveNoteAndContinueClick(){
 
     Http.send(JSON.stringify({metadata: data}));
 
+    linkModal.style.display = "block";
+    var anchor = document.getElementById('shareheader');
+    anchor.innerHTML = "Saving note information..";
+    document.getElementById('sharelink').style.display = 'none';
     Http.onreadystatechange = (e) => {
       if (Http.readyState == 4 && Http.status == 200) {
+        closeModal();
         linkModal.style.display = "block";
         var anchor = document.getElementById('shareheader');
         anchor.innerHTML = "Note has been successfully saved!";
@@ -444,7 +449,7 @@ function onSaveNoteAndContinueClick(){
 
         var newCube = new Three.Mesh( geometry, material );
         newCube.name = "noteCube";
-        newCube.userData = text;
+        newCube.userData = noteInfo;
         scene.add(newCube);
         cubes.push(newCube);
         newCube.position.set(point.x, point.y, point.z,);

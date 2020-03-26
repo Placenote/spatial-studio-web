@@ -74,7 +74,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
 
     linkModal.style.display = "block";
     var anchor = document.getElementById('shareheader');
-    anchor.innerHTML = "Deleting note...";
+    anchor.innerHTML = "Saving note information..";
     document.getElementById('sharelink').style.display = 'none';
     Http.onreadystatechange = (e) => {
       if (Http.readyState == 4 && Http.status == 200) {

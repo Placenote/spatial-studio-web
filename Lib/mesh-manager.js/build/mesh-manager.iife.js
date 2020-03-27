@@ -321,10 +321,10 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
             // Modal to enter project name and project description
             Swal.fire({
               title: 'Edit Note!',
-              text: 'Enter note text',
+              text: 'Enter note text here: ',
               input: 'text',
               showCancelButton: true,
-              cancelButtonText: "Delete note",
+              cancelButtonText: "Cancel",
               confirmButtonText: "Save note info",
               inputValue: noteObj.userData.noteText,
               inputValidator: (noteText) => {
@@ -336,7 +336,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 }
               },
               preConfirm: function(noteText) {
-                if( noteText ) {}
                 Swal.showLoading();
                 NotesArray.forEach((note) => {
                   if (note.note.noteText == noteObj.userData.noteText) {

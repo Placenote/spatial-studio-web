@@ -71,13 +71,21 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
     Http.setRequestHeader('placeid', mapIdVal);
 
     Http.send(JSON.stringify(data));
-
+    Swal.fire({
+      title: 'Saving Changes...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      allowEnterKey: false,
+      onOpen: () => {
+          Swal.showLoading();
+      }
+  })
     Http.onreadystatechange = (e) => {
       if (Http.readyState == 4 && Http.status == 200) {
         this.meshMetadata = data;
         Swal.fire({
           icon: 'success',
-          text: "'Note info has been saved'",
+          text: 'Note info has been saved',
         });
       }
       if (Http.status == 400) {
@@ -322,7 +330,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               }
               // Logic for saving edited note information
               else {
-                Swal.showLoading();
                 NotesArray.forEach((note) => {
                   if (note.note.noteText == noteObj.userData.noteText) {
                     note.note.noteText = noteText.value;
@@ -355,7 +362,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 }
               },
               preConfirm: function(noteText) {
-                Swal.showLoading();
                 var point = scope.getRaycastPoint();
                 var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText);
                 const location = new MapLocation(0,0,0);

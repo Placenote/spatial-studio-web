@@ -72,24 +72,19 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
 
     Http.send(JSON.stringify(data));
 
-    linkModal.style.display = "block";
-    var anchor = document.getElementById('shareheader');
-    anchor.innerHTML = "Saving note information..";
-    document.getElementById('sharelink').style.display = 'none';
     Http.onreadystatechange = (e) => {
       if (Http.readyState == 4 && Http.status == 200) {
-        closeModal();
-        linkModal.style.display = "block";
-        var anchor = document.getElementById('shareheader');
-        anchor.innerHTML = "Note information has been saved!";
-        document.getElementById('sharelink').style.display = 'none';
         this.meshMetadata = data;
+        Swal.fire({
+          icon: 'success',
+          text: "'Note info has been saved'",
+        });
       }
       if (Http.status == 400) {
-        linkModal.style.display = "block";
-        var anchor = document.getElementById('shareheader');
-        anchor.innerHTML = "Oops, something went wrong! Please try again!";
-        document.getElementById('sharelink').style.display = 'none';
+        Swal.fire({
+          icon: 'error',
+          text: "'Oops...', 'Something went wrong!', 'error'",
+        });
       }
     }
    }
@@ -280,51 +275,10 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               elements[0].parentNode.removeChild(elements[0]);
             }
           }
-          // Logic if raycast hits an existing object
-          if (intersects[i].object.name == 'noteCube') {
-            
-            var editButton = document.createElement('button');
-            var editSaveButton = document.createElement('button');
-            var noteObj = intersects[i].object;
-            delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
-            let meshMetadata = this.meshMetadata;
-
-            const params = {
-              textField: noteObj.userData.noteText,
-            }
-            const gui = new dat.GUI();
-            gui.add(params, "textField").onFinishChange(function (value) {
-              NotesArray.forEach((note) => {
-                if (note.note.noteText == noteObj.userData.noteText) {
-                  note.note.noteText = value;
-                  noteObj.userData.noteText = value;
-                }
-              })
-              meshMetadata.metadata.userdata.notesList = NotesArray;
-              scope._setMeshMetadata(meshMetadata);
-            });
-
-            // Logic for "Edit Button" when a note is clicked
-            editButton.addEventListener('click', function(){
-              document.getElementById('noteText').value = noteObj.userData.noteText;
-              editSaveButton.addEventListener('click', function(){
-                NotesArray.forEach((note) => {
-                  if (note.note.noteText == noteObj.userData.noteText) {
-                    note.note.noteText = document.getElementById('noteText').value;
-                    noteObj.userData.noteText = document.getElementById('noteText').value;
-                  }
-                })
-                meshMetadata.metadata.userdata.notesList = NotesArray;
-                scope._setMeshMetadata(meshMetadata);
-              })
-              editSaveButton.innerHTML = "Edit-Save";
-              editSaveButton.className = "noteModifiers";
-              document.getElementById("noteManager").appendChild(editSaveButton);
-            })
-            editButton.innerHTML = "Edit Note";
-            editButton.className = "noteModifiers";
-
-            var deleteButton = document.createElement('button');
+          var noteObj = intersects[i].object;
+          delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
+          let meshMetadata = this.meshMetadata;
+          var deleteButton = document.createElement('button');
             // Logic for "Delete Button" when a note is clicked
             deleteButton.addEventListener('click', function(){
               // Removes Edit, Delete, and Edit-Save buttons when a note is deleted
@@ -358,8 +312,42 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
             })
             deleteButton.innerHTML = "Delete Note";
             deleteButton.className = "noteModifiers";
+          var buttons = document.createElement('div');
+          buttons.appendChild(deleteButton);
+         
+          // Logic if raycast hits an existing object
+          if (intersects[i].object.name == 'noteCube') {
 
-            document.getElementById("noteManager").appendChild(editButton);
+            // Modal to enter project name and project description
+            Swal.fire({
+              title: 'Edit Note!',
+              text: 'Enter note text',
+              input: 'text',
+              showCancelButton: true,
+              cancelButtonText: "Delete note",
+              confirmButtonText: "Save note info",
+              inputValue: noteObj.userData.noteText,
+              inputValidator: (noteText) => {
+                if(!noteText){
+                    return 'You need to enter text!';       
+                }
+                if( noteText.length > 25 ){
+                    return 'You have exceeded 25 characters';
+                }
+              },
+              preConfirm: function(noteText) {
+                if( noteText ) {}
+                Swal.showLoading();
+                NotesArray.forEach((note) => {
+                  if (note.note.noteText == noteObj.userData.noteText) {
+                    note.note.noteText = noteText;
+                    noteObj.userData.noteText = noteText;
+                  }
+                })
+                meshMetadata.metadata.userdata.notesList = NotesArray;
+                scope._setMeshMetadata(meshMetadata);
+              }
+            });
             document.getElementById("noteManager").appendChild(deleteButton);
             intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFF0000} ); // Changes color of object when clicked on
           }

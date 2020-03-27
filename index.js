@@ -432,17 +432,12 @@ function onSaveNoteAndContinueClick(){
 
     Http.send(JSON.stringify({metadata: data}));
 
-    linkModal.style.display = "block";
-    var anchor = document.getElementById('shareheader');
-    anchor.innerHTML = "Saving note information..";
-    document.getElementById('sharelink').style.display = 'none';
     Http.onreadystatechange = (e) => {
       if (Http.readyState == 4 && Http.status == 200) {
-        closeModal();
-        linkModal.style.display = "block";
-        var anchor = document.getElementById('shareheader');
-        anchor.innerHTML = "Note has been successfully saved!";
-        document.getElementById('sharelink').style.display = 'none';
+        Swal.fire({
+          icon: 'success',
+          text: "'Note info has been saved'",
+        });
         // Add cube at raycast point
         var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
         var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
@@ -455,10 +450,10 @@ function onSaveNoteAndContinueClick(){
         newCube.position.set(point.x, point.y, point.z,);
       }
       if (Http.status == 400) {
-        linkModal.style.display = "block";
-        var anchor = document.getElementById('shareheader');
-        anchor.innerHTML = "Oops, something went wrong! Please try again!";
-        document.getElementById('sharelink').style.display = 'none';
+        Swal.fire({
+          icon: 'error',
+          text: "'Oops...', 'Something went wrong!', 'error'",
+        });
       }
     }
   }

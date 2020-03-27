@@ -270,52 +270,18 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
           var noteObj = intersects[i].object;
           delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
           let meshMetadata = this.meshMetadata;
-          var deleteButton = document.createElement('button');
-            // Logic for "Delete Button" when a note is clicked
-            deleteButton.addEventListener('click', function(){
-              // Removes Edit, Delete, and Edit-Save buttons when a note is deleted
-              var elements = document.getElementsByClassName("noteModifiers");
-              while(elements.length > 0){
-                elements[0].parentNode.removeChild(elements[0]);
-              }
-              // Modifies notes list by removing the note being deleted from the array
-              NotesArray.forEach((note) => {
-                if (note.note.noteText == noteObj.userData.noteText) {
-                  let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
-                  meshMetadata.metadata.userdata.notesList.splice(index, 1);
-                  meshMetadata.metadata.userdata.notesList = NotesArray;
-                  scope._setMeshMetadata(meshMetadata);
-                }
-              })
-              // Removes all notes from the scene 
-              while (scene.getObjectByName("noteCube")) {
-                scene.remove(scene.getObjectByName("noteCube"));
-              }
-              // Adds all notes to the scene using the modified metadata
-              meshMetadata.metadata.userdata.notesList.forEach((noteObj) => {
-                var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
-                var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
-                var newCube = new Three.Mesh( geometry, material );
-                newCube.name = "noteCube";
-                newCube.userData = noteObj.note;
-                newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
-                scene.add(newCube);
-              })
-            })
-            deleteButton.innerHTML = "Delete Note";
-            deleteButton.className = "noteModifiers";
-          var buttons = document.createElement('div');
-          buttons.appendChild(deleteButton);
          
           // Logic if raycast hits an existing object
           if (intersects[i].object.name == 'noteCube') {
+            // Changes color of object when clicked on
+            intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFF0000} ); 
             // Modal to enter note text
             Swal.fire({
               title: 'Edit Note!',
               text: 'Enter note text here:',
               input: 'text',
               showCancelButton: true,
-              cancelButtonText: "Cancel",
+              cancelButtonText: "Delete note",
               confirmButtonText: "Save note info",
               inputValue: noteObj.userData.noteText,
               allowOutsideClick: false,
@@ -326,22 +292,48 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 if( noteText.length > 100 ){
                     return 'You have exceeded 100 characters';
                 }
-              },
-              preConfirm: function(noteText) {
+              }
+            }).then(function(noteText) {
+              // Logic for delete button on edit popup
+              if (noteText.dismiss == "cancel") {
+                // Modifies notes list by removing the note being deleted from the array
+                NotesArray.forEach((note) => {
+                  if (note.note.noteText == noteObj.userData.noteText) {
+                    let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
+                    meshMetadata.metadata.userdata.notesList.splice(index, 1);
+                    meshMetadata.metadata.userdata.notesList = NotesArray;
+                    scope._setMeshMetadata(meshMetadata);
+                  }
+                })
+                // Removes all notes from the scene 
+                while (scene.getObjectByName("noteCube")) {
+                  scene.remove(scene.getObjectByName("noteCube"));
+                }
+                // Adds all notes to the scene using the modified metadata
+                meshMetadata.metadata.userdata.notesList.forEach((noteObj) => {
+                  var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
+                  var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
+                  var newCube = new Three.Mesh( geometry, material );
+                  newCube.name = "noteCube";
+                  newCube.userData = noteObj.note;
+                  newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
+                  scene.add(newCube);
+                })
+              }
+              // Logic for saving edited note information
+              else {
                 Swal.showLoading();
                 NotesArray.forEach((note) => {
                   if (note.note.noteText == noteObj.userData.noteText) {
-                    note.note.noteText = noteText;
-                    noteObj.userData.noteText = noteText;
+                    note.note.noteText = noteText.value;
+                    noteObj.userData.noteText = noteText.value;
                   }
                 })
                 meshMetadata.metadata.userdata.notesList = NotesArray;
                 scope._setMeshMetadata(meshMetadata);
               }
             });
-            document.getElementById("noteManager").appendChild(deleteButton);
-            intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFF0000} ); // Changes color of object when clicked on
-          }
+            }
           // Logic if raycast hits the mesh
           if (intersects[i].object.name == 'PlacenoteMesh') {
              // Modal to enter note text

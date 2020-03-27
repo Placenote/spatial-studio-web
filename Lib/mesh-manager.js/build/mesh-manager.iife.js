@@ -346,7 +346,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
           if (intersects[i].object.name == 'PlacenoteMesh') {
              // Modal to enter note text
              Swal.fire({
-              title: 'Edit Note!',
+              title: 'Create a Note!',
               text: 'Enter note text here:',
               input: 'text',
               showCancelButton: true,

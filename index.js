@@ -373,7 +373,6 @@ function onShareLinkButtonClick()
 
 
 }
-
 class MapMetadataSettable {
   constructor(name, location, userdata) {
     this.name = name;
@@ -396,66 +395,6 @@ class NoteInfo {
     this.py = py;
     this.pz = pz;
     this.noteText = noteText;
-  }
-}
-function onSaveNoteAndContinueClick(){
-  if (!scene.getObjectByName("clickCube")) {
-    linkModal.style.display = "block";
-    var anchor = document.getElementById('shareheader');
-    anchor.innerHTML = "Double-click on a point on the mesh to set a note!";
-    document.getElementById('sharelink').style.display = 'none';
-  }
-  else if (document.getElementById('noteText').value == "") {
-    linkModal.style.display = "block";
-    var anchor = document.getElementById('shareheader');
-    anchor.innerHTML = "The note cannot be empty! Please enter text!";
-    document.getElementById('sharelink').style.display = 'none';
-  }
-  else {
-    var point = placenoteMesh.getRaycastPoint();
-    var text = document.getElementById('noteText').value;
-    var noteInfo = new NoteInfo(point.x, point.y, point.z, text);
-    const location = new MapLocation(0,0,0);
-  
-    NotesArray.push({note: noteInfo});
-    let notesList = {notesList: NotesArray};
-    let data = new MapMetadataSettable("Nicki Minaj", location, notesList );
-    document.getElementById('noteText').value = "";
-
-    const Http = new XMLHttpRequest();
-    const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/setMetadata';
-    var apiKeyVal = document.getElementById('apikey').value;
-    var mapIdVal = document.getElementById('mapid').value;
-    Http.open("POST", url, true);
-    Http.setRequestHeader('APIKEY', apiKeyVal);
-    Http.setRequestHeader('placeid', mapIdVal);
-
-    Http.send(JSON.stringify({metadata: data}));
-
-    Http.onreadystatechange = (e) => {
-      if (Http.readyState == 4 && Http.status == 200) {
-        Swal.fire({
-          icon: 'success',
-          text: "'Note info has been saved'",
-        });
-        // Add cube at raycast point
-        var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
-        var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
-
-        var newCube = new Three.Mesh( geometry, material );
-        newCube.name = "noteCube";
-        newCube.userData = noteInfo;
-        scene.add(newCube);
-        cubes.push(newCube);
-        newCube.position.set(point.x, point.y, point.z,);
-      }
-      if (Http.status == 400) {
-        Swal.fire({
-          icon: 'error',
-          text: "'Oops...', 'Something went wrong!', 'error'",
-        });
-      }
-    }
   }
 }
 

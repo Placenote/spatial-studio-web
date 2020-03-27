@@ -267,14 +267,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
 
       for (var i = 0; i < intersects.length; i++) {
         if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || intersects[i].object.name == 'noteCube')) {
-          // Removes the edit, edit-save, and delete buttons after each double-click on mesh
-          if (document.getElementsByClassName("noteModifiers")) {
-            document.getElementById('noteText').value = ""; // Clears the input console when a note is clicked
-            var elements = document.getElementsByClassName("noteModifiers");
-            while (elements.length > 0) {
-              elements[0].parentNode.removeChild(elements[0]);
-            }
-          }
           var noteObj = intersects[i].object;
           delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
           let meshMetadata = this.meshMetadata;
@@ -317,22 +309,22 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
          
           // Logic if raycast hits an existing object
           if (intersects[i].object.name == 'noteCube') {
-
-            // Modal to enter project name and project description
+            // Modal to enter note text
             Swal.fire({
               title: 'Edit Note!',
-              text: 'Enter note text here: ',
+              text: 'Enter note text here:',
               input: 'text',
               showCancelButton: true,
               cancelButtonText: "Cancel",
               confirmButtonText: "Save note info",
               inputValue: noteObj.userData.noteText,
+              allowOutsideClick: false,
               inputValidator: (noteText) => {
                 if(!noteText){
                     return 'You need to enter text!';       
                 }
-                if( noteText.length > 25 ){
-                    return 'You have exceeded 25 characters';
+                if( noteText.length > 100 ){
+                    return 'You have exceeded 100 characters';
                 }
               },
               preConfirm: function(noteText) {
@@ -349,6 +341,50 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
             });
             document.getElementById("noteManager").appendChild(deleteButton);
             intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFF0000} ); // Changes color of object when clicked on
+          }
+          // Logic if raycast hits the mesh
+          if (intersects[i].object.name == 'PlacenoteMesh') {
+             // Modal to enter note text
+             Swal.fire({
+              title: 'Edit Note!',
+              text: 'Enter note text here:',
+              input: 'text',
+              showCancelButton: true,
+              cancelButtonText: "Cancel",
+              confirmButtonText: "Save note info",
+              allowOutsideClick: false,
+              inputValue: noteObj.userData.noteText,
+              inputValidator: (noteText) => {
+                if(!noteText){
+                    return 'You need to enter text!';       
+                }
+                if( noteText.length > 25 ){
+                    return 'You have exceeded 25 characters';
+                }
+              },
+              preConfirm: function(noteText) {
+                Swal.showLoading();
+                var point = scope.getRaycastPoint();
+                var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText);
+                const location = new MapLocation(0,0,0);
+  
+                NotesArray.push({note: noteInfo});
+                let notesList = {notesList: NotesArray};
+                let data = new MapMetadataSettable("Processed Mesh", location, notesList);
+                scope._setMeshMetadata({metadata: data});
+
+                // Add cube at raycast point
+                var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
+                var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
+
+                var newCube = new Three.Mesh( geometry, material );
+                newCube.name = "noteCube";
+                newCube.userData = noteInfo;
+                scene.add(newCube);
+                cubes.push(newCube);
+                newCube.position.set(point.x, point.y, point.z);
+              }
+            });
           }
           // Take first intersection with mesh
           if (scope.logging) console.log('Raycast to mesh is true');

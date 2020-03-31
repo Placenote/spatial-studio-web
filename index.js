@@ -294,7 +294,14 @@ var renderer = new Three.WebGLRenderer();
 
 renderer.setSize(width, height);
 
+labelRenderer = new Three.CSS2DRenderer();
+labelRenderer.setSize( width, height );
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+
 document.getElementById('threeViewer').appendChild(renderer.domElement);
+document.getElementById('threeViewer').appendChild(labelRenderer.domElement);
 var controls = new Three.OrbitControls(camera, renderer.domElement);
 controls.enabled = true;
 controls.maxDistance = 20;
@@ -441,6 +448,7 @@ var animate = function() {
   requestAnimationFrame( animate );
   controls.update();
   renderer.render( scene, camera );
+  labelRenderer.render( scene, camera );
 }
 animate();
 

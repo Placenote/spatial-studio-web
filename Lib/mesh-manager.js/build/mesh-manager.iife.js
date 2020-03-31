@@ -340,7 +340,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 scope._setMeshMetadata(meshMetadata);
               }
             });
-            }
+          }
           // Logic if raycast hits the mesh
           if (intersects[i].object.name == 'PlacenoteMesh') {
              // Modal to enter note text
@@ -357,8 +357,8 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 if(!noteText){
                     return 'You need to enter text!';       
                 }
-                if( noteText.length > 25 ){
-                    return 'You have exceeded 25 characters';
+                if( noteText.length > 100 ){
+                    return 'You have exceeded 100 characters';
                 }
               },
               preConfirm: function(noteText) {
@@ -378,9 +378,22 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 var newCube = new Three.Mesh( geometry, material );
                 newCube.name = "noteCube";
                 newCube.userData = noteInfo;
+                newCube.position.set(point.x, point.y, point.z);
                 scene.add(newCube);
                 cubes.push(newCube);
-                newCube.position.set(point.x, point.y, point.z);
+          
+                var text = document.createElement( 'div' );
+                text.style.backgroundColor= 'white';
+                text.style.opacity = 0.5;
+                text.style.padding = '3px';
+                text.style.border = '2px solid black';
+                text.className = 'label';
+                text.style.color = 'black';
+						    text.textContent = noteText;
+
+						    var label = new Three.CSS2DObject( text );
+						    label.position.set(point.x, point.y - 0.5, point.z);
+						    scene.add( label );
               }
             });
           }

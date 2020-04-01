@@ -49,9 +49,17 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
         var newCube = new Three.Mesh( geometry, material );
         newCube.name = "noteCube";
         newCube.userData = noteObj.note;
+        newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
         scene.add(newCube);
         cubes.push(newCube);
-        newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
+        
+        var text = document.createElement( 'div' );
+        text.className = 'noteText';
+        text.textContent = noteObj.note.noteText;
+
+        var label = new Three.CSS2DObject( text );
+        label.position.set(noteObj.note.px,noteObj.note.py - 0.5,noteObj.note.pz);
+        scene.add( label );
       })
       return this.meshMetadata;
       }
@@ -383,12 +391,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 cubes.push(newCube);
           
                 var text = document.createElement( 'div' );
-                text.style.backgroundColor= 'white';
-                text.style.opacity = 0.5;
-                text.style.padding = '3px';
-                text.style.border = '2px solid black';
-                text.className = 'label';
-                text.style.color = 'black';
+                text.className = 'noteText';
 						    text.textContent = noteText;
 
 						    var label = new Three.CSS2DObject( text );

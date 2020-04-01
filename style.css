@@ -143,6 +143,14 @@
     margin: 5px;
   }
 
+  .noteText {
+    background-color: white;
+    opacity: 0.5;
+    padding: 3px;
+    border: 2px solid black;
+    color: black;
+  }
+
   /* Code for Modals  */
 
   .modal {

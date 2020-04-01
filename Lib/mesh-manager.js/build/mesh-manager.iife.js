@@ -69,7 +69,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
     * @desc HELPER METHOD: Sets mesh metadata. 
     * Makes Http request to set metadata
     */
-   PlacenoteMesh.prototype._setMeshMetadata = function (data) {
+   PlacenoteMesh.prototype._setMeshMetadata = function (data, deleteNote) {
     const Http = new XMLHttpRequest();
     const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/setMetadata';
     var apiKeyVal = document.getElementById('apikey').value;
@@ -91,10 +91,18 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
     Http.onreadystatechange = (e) => {
       if (Http.readyState == 4 && Http.status == 200) {
         this.meshMetadata = data;
-        Swal.fire({
-          icon: 'success',
-          text: 'Note info has been saved',
-        });
+        if (deleteNote) {
+          Swal.fire({
+            icon: 'success',
+            text: 'Note has been deleted!',
+          });
+        }
+        else {
+          Swal.fire({
+            icon: 'success',
+            text: 'Note info has been saved!',
+          });
+        }
       }
       if (Http.status == 400) {
         Swal.fire({
@@ -318,7 +326,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                     let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                     meshMetadata.metadata.userdata.notesList.splice(index, 1);
                     meshMetadata.metadata.userdata.notesList = NotesArray;
-                    scope._setMeshMetadata(meshMetadata);
+                    scope._setMeshMetadata(meshMetadata, true);
                   }
                 })
                 // Removes all notes from the scene 
@@ -345,7 +353,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                   }
                 })
                 meshMetadata.metadata.userdata.notesList = NotesArray;
-                scope._setMeshMetadata(meshMetadata);
+                scope._setMeshMetadata(meshMetadata, false);
               }
             });
           }
@@ -377,7 +385,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 NotesArray.push({note: noteInfo});
                 let notesList = {notesList: NotesArray};
                 let data = new MapMetadataSettable("Processed Mesh", location, notesList);
-                scope._setMeshMetadata({metadata: data});
+                scope._setMeshMetadata({metadata: data}, false);
 
                 // Add cube at raycast point
                 var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);

@@ -58,6 +58,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
         text.textContent = noteObj.note.noteText;
 
         var label = new Three.CSS2DObject( text );
+        label.name = noteObj.note.noteText;
         label.position.set(noteObj.note.px,noteObj.note.py - 0.5,noteObj.note.pz);
         scene.add( label );
       })
@@ -333,6 +334,11 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 while (scene.getObjectByName("noteCube")) {
                   scene.remove(scene.getObjectByName("noteCube"));
                 }
+                // Removes note label from scene
+                while (scene.getObjectByName(noteObj.userData.noteText)) {
+                  scene.remove(scene.getObjectByName(noteObj.userData.noteText)); 
+                }
+
                 // Adds all notes to the scene using the modified metadata
                 meshMetadata.metadata.userdata.notesList.forEach((noteObj) => {
                   var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
@@ -402,9 +408,10 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 text.className = 'noteText';
 						    text.textContent = noteText;
 
-						    var label = new Three.CSS2DObject( text );
+                var label = new Three.CSS2DObject( text );
+                label.name = noteText;
 						    label.position.set(point.x, point.y - 0.5, point.z);
-						    scene.add( label );
+                scene.add( label );
               }
             });
           }

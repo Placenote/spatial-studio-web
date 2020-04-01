@@ -12,28 +12,6 @@ var isCameraTopDown = false;
 // Callback functions
 
 var onKeyFrameUpdate = function(keyframeInfo, camera) {
-  // Add cube at raycast point
-  var point = placenoteMesh.getRaycastPoint();
-  var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
-  var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
-
-  var existingCube = scene.getObjectByName("clickCube");
-  var newCube;
-
-  if (!existingCube) {
-    newCube = new Three.Mesh( geometry, material );
-    newCube.name = "clickCube";
-    scene.add(newCube);
-    cubes.push(newCube);
-  }
-  else {
-    newCube = existingCube;
-  }
-
-  newCube.position.set(point.x,point.y,point.z);
-  newCube.rotation.set(point.x,point.y,point.z); // Random rotation
-
-
   // Update keyframe images
   keyframeInfo['keyframeNames'].forEach(function (index, i) {
 

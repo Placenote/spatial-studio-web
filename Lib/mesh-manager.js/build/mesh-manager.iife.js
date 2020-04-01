@@ -282,7 +282,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
           // Logic if raycast hits an existing object
           if (intersects[i].object.name == 'noteCube') {
             // Changes color of object when clicked on
-            intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFF0000} ); 
+            intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFFFF00} ); 
             // Modal to enter note text
             Swal.fire({
               title: 'Edit Note!',

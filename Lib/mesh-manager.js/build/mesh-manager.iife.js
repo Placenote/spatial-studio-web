@@ -48,18 +48,18 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
 
         var newCube = new Three.Mesh( geometry, material );
         newCube.name = "noteCube";
-        newCube.userData = noteObj.note;
-        newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
+        newCube.userData = noteObj;
+        newCube.position.set(noteObj.px,noteObj.py,noteObj.pz);
         scene.add(newCube);
         cubes.push(newCube);
         
         var text = document.createElement( 'div' );
         text.className = 'noteText';
-        text.textContent = noteObj.note.noteText;
+        text.textContent = noteObj.noteText;
 
         var label = new Three.CSS2DObject( text );
-        label.name = noteObj.note.noteText;
-        label.position.set(noteObj.note.px,noteObj.note.py - 0.5,noteObj.note.pz);
+        label.name = noteObj.noteText;
+        label.position.set(noteObj.px,noteObj.py - 0.5,noteObj.pz);
         scene.add( label );
       })
       return this.meshMetadata;
@@ -323,7 +323,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               if (noteText.dismiss == "cancel") {
                 // Modifies notes list by removing the note being deleted from the array
                 NotesArray.forEach((note) => {
-                  if (note.note.noteText == noteObj.userData.noteText) {
+                  if (note.noteText == noteObj.userData.noteText) {
                     let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                     meshMetadata.metadata.userdata.notesList.splice(index, 1);
                     meshMetadata.metadata.userdata.notesList = NotesArray;
@@ -345,20 +345,20 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                   var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
                   var newCube = new Three.Mesh( geometry, material );
                   newCube.name = "noteCube";
-                  newCube.userData = noteObj.note;
-                  newCube.position.set(noteObj.note.px,noteObj.note.py,noteObj.note.pz);
+                  newCube.userData = noteObj;
+                  newCube.position.set(noteObj.px,noteObj.py,noteObj.pz);
                   scene.add(newCube);
                 })
               }
               // Logic for saving edited note information
               else {
                 NotesArray.forEach((note) => {
-                  if (note.note.noteText == noteObj.userData.noteText) {
+                  if (note.noteText == noteObj.userData.noteText) {
                     // Removes note label from scene
                     while (scene.getObjectByName(noteObj.userData.noteText)) {
                       scene.remove(scene.getObjectByName(noteObj.userData.noteText)); 
                     }
-                    note.note.noteText = noteText.value;
+                    note.noteText = noteText.value;
                     noteObj.userData.noteText = noteText.value;
                   }
                 })
@@ -403,7 +403,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText);
                 const location = new MapLocation(0,0,0);
   
-                NotesArray.push({note: noteInfo});
+                NotesArray.push(noteInfo);
                 let notesList = {notesList: NotesArray};
                 let data = new MapMetadataSettable("Processed Mesh", location, notesList);
                 scope._setMeshMetadata({metadata: data}, false);

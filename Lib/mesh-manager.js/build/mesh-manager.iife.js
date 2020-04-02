@@ -354,12 +354,27 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               else {
                 NotesArray.forEach((note) => {
                   if (note.note.noteText == noteObj.userData.noteText) {
+                    // Removes note label from scene
+                    while (scene.getObjectByName(noteObj.userData.noteText)) {
+                      scene.remove(scene.getObjectByName(noteObj.userData.noteText)); 
+                    }
                     note.note.noteText = noteText.value;
                     noteObj.userData.noteText = noteText.value;
                   }
                 })
+                // Update local array and call setMetadata endpoint
                 meshMetadata.metadata.userdata.notesList = NotesArray;
                 scope._setMeshMetadata(meshMetadata, false);
+
+                // Create a new label for the note
+                var text = document.createElement( 'div' );
+                text.className = 'noteText';
+						    text.textContent = noteText.value;
+
+                var label = new Three.CSS2DObject( text );
+                label.name = noteText.value;
+						    label.position.set(noteObj.userData.px, noteObj.userData.py - 0.5, noteObj.userData.pz);
+                scene.add( label );
               }
             });
           }

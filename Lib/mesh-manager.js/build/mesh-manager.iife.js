@@ -42,12 +42,17 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
         NotesArray = jsonRes.metadata.userdata.notesList;
       }
       NotesArray.forEach((noteObj) => {
+        // For some reason, _init() is being called twice, so this will prevent duplicate scene children
+        if (scene.getObjectByName(noteObj.noteText)) {
+          return;
+        }
         // Loads cubes into the scene
         var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
         var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
 
         var newCube = new Three.Mesh( geometry, material );
-        newCube.name = "noteCube";
+        newCube.className = "noteCube";
+        newCube.name = noteObj.noteText;
         newCube.userData = noteObj;
         newCube.position.set(noteObj.px,noteObj.py,noteObj.pz);
         scene.add(newCube);
@@ -58,7 +63,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
         text.textContent = noteObj.noteText;
 
         var label = new Three.CSS2DObject( text );
-        label.name = noteObj.noteText;
+        label.name = "Label:" + noteObj.noteText;
         label.position.set(noteObj.px,noteObj.py - 0.5,noteObj.pz);
         scene.add( label );
       })
@@ -291,13 +296,13 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       var scope = this;
 
       for (var i = 0; i < intersects.length; i++) {
-        if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || intersects[i].object.name == 'noteCube')) {
+        if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || intersects[i].object.className == 'noteCube')) {
           var noteObj = intersects[i].object;
           delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
           let meshMetadata = this.meshMetadata;
          
           // Logic if raycast hits an existing object
-          if (intersects[i].object.name == 'noteCube') {
+          if (intersects[i].object.className == 'noteCube') {
             // Changes color of object when clicked on
             intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFFFF00} ); 
             // Modal to enter note text
@@ -330,34 +335,16 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                     scope._setMeshMetadata(meshMetadata, true);
                   }
                 })
-                // Removes all notes from the scene 
-                while (scene.getObjectByName("noteCube")) {
-                  scene.remove(scene.getObjectByName("noteCube"));
-                }
-                // Removes note label from scene
-                while (scene.getObjectByName(noteObj.userData.noteText)) {
-                  scene.remove(scene.getObjectByName(noteObj.userData.noteText)); 
-                }
-
-                // Adds all notes to the scene using the modified metadata
-                meshMetadata.metadata.userdata.notesList.forEach((noteObj) => {
-                  var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
-                  var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
-                  var newCube = new Three.Mesh( geometry, material );
-                  newCube.name = "noteCube";
-                  newCube.userData = noteObj;
-                  newCube.position.set(noteObj.px,noteObj.py,noteObj.pz);
-                  scene.add(newCube);
-                })
+                // Removes note cube and note label from the scene 
+                scene.remove(scene.getObjectByName(noteObj.userData.noteText));
+                scene.remove(scene.getObjectByName("Label:" + noteObj.userData.noteText));
               }
               // Logic for saving edited note information
               else {
                 NotesArray.forEach((note) => {
                   if (note.noteText == noteObj.userData.noteText) {
                     // Removes note label from scene
-                    while (scene.getObjectByName(noteObj.userData.noteText)) {
-                      scene.remove(scene.getObjectByName(noteObj.userData.noteText)); 
-                    }
+                    scene.remove(scene.getObjectByName("Label:" + noteObj.userData.noteText)); 
                     note.noteText = noteText.value;
                     noteObj.userData.noteText = noteText.value;
                   }
@@ -372,7 +359,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
 						    text.textContent = noteText.value;
 
                 var label = new Three.CSS2DObject( text );
-                label.name = noteText.value;
+                label.name = "Label:" + noteText.value;
 						    label.position.set(noteObj.userData.px, noteObj.userData.py - 0.5, noteObj.userData.pz);
                 scene.add( label );
               }
@@ -413,7 +400,8 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
 
                 var newCube = new Three.Mesh( geometry, material );
-                newCube.name = "noteCube";
+                newCube.className = "noteCube";
+                newCube.name = noteText;
                 newCube.userData = noteInfo;
                 newCube.position.set(point.x, point.y, point.z);
                 scene.add(newCube);
@@ -424,7 +412,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
 						    text.textContent = noteText;
 
                 var label = new Three.CSS2DObject( text );
-                label.name = noteText;
+                label.name = "Label:" + noteText;
 						    label.position.set(point.x, point.y - 0.5, point.z);
                 scene.add( label );
               }

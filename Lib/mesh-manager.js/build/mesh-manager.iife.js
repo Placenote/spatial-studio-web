@@ -66,7 +66,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
         label.name = "Label:" + noteObj.noteText;
         label.position.set(noteObj.px,noteObj.py - 0.5,noteObj.pz);
         scene.add( label );
-      })
+      });
       return this.meshMetadata;
       }
     };
@@ -126,7 +126,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
     */
     PlacenoteMesh.prototype._init = function (onError) {
       if (this.logging) console.log('Starting Initialization');
-      this._getMeshMetadata();
       var scope = this;
       var xhr = new XMLHttpRequest(); // Get URL for dataset.json
 
@@ -635,6 +634,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
         mesh.name = 'PlacenoteMesh';
         if (scope.logging) console.log('Loading mesh complete');
         onLoad(mesh);
+        scope._getMeshMetadata();
       };
 
       var objLoader = new threeFull.OBJLoader2();

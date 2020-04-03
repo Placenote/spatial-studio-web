@@ -23,7 +23,7 @@ var onKeyFrameUpdate = function(keyframeInfo, camera) {
 
 
 var onLoad = function(value) {
-  //
+
   var selectedObject = scene.getObjectByName('PlacenoteMesh');
   if(selectedObject) scene.remove( selectedObject );
 

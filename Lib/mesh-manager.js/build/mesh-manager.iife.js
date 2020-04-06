@@ -46,7 +46,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
         if (scene.getObjectByName(noteObj.noteText)) {
           return;
         }
-        if ( scene.getObjectByName("Label: " + noteObj.noteText)) {
+        if (scene.getObjectByName("Label: " + noteObj.noteText)) {
           return;
         }
         // Loads note markers and note labels into the scene
@@ -64,6 +64,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
             obj.userData = noteObj;
             obj.position.set(noteObj.px,noteObj.py,noteObj.pz);
             scene.add( obj );
+            markers.push(obj);
 
           }
           loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
@@ -421,18 +422,18 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                     obj.userData = noteInfo;
                     obj.position.set(point.x, point.y, point.z);
                     scene.add( obj );
-
-                    var text = document.createElement( 'div' );
-                    text.className = 'noteText';
-						        text.textContent = noteText;
-
-                    var label = new Three.CSS2DObject( text );
-                    label.name = "Label: " + noteText;
-                    label.position.set(point.x, point.y - 0.5, point.z);
-                    scene.add( label );
+                    markers.push(obj);
                   }
                   loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
-                });     
+                });   
+                var text = document.createElement( 'div' );
+                text.className = 'noteText';
+                text.textContent = noteText;
+
+                var label = new Three.CSS2DObject( text );
+                label.name = "Label: " + noteText;
+                label.position.set(point.x, point.y - 0.5, point.z);
+                scene.add( label );  
               }
             });
           }

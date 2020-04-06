@@ -290,13 +290,7 @@ controls.enableZoom = true;
 controls.maxPolarAngle = Math.PI/2;
 
 scene.add( new Three.AmbientLight());
-var cubes = [];
-var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
-var material = new Three.MeshBasicMaterial( {color: 0xFFF200} );
-material.wireframe = true;
-var cube = new Three.Mesh( geometry, material );
-cubes.push(cube);
-scene.add(cube);
+var markers = [];
 
 // END Three js viewer init
 
@@ -418,9 +412,8 @@ addEventListener( 'dblclick', onDocumentMouseDown, false ); // Add click listene
 
 // THREE.js animate function
 var animate = function() {
-  cubes.forEach(function (cube) {
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
+  markers.forEach(function (marker) {
+    marker.rotation.y += 0.01;
   });
 
   requestAnimationFrame( animate );

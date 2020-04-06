@@ -46,24 +46,34 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
         if (scene.getObjectByName(noteObj.noteText)) {
           return;
         }
-        // Loads cubes into the scene
-        var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
-        var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
+        if ( scene.getObjectByName("Label: " + noteObj.noteText)) {
+          return;
+        }
+        // Loads note markers and note labels into the scene
+        var mtlLoader = new Three.MTLLoader();
+        mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
+          materials.preload();
+          var loader = new Three.OBJLoader();
+          loader.setMaterials( materials )
+          // function called on successful load
+          function callbackOnLoad ( obj ) {
+            obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} );
+            obj.scale.set(0.01,0.01,0.01);
+            obj.className = "noteMarker";
+            obj.name = noteObj.noteText;
+            obj.userData = noteObj;
+            obj.position.set(noteObj.px,noteObj.py,noteObj.pz);
+            scene.add( obj );
 
-        var newCube = new Three.Mesh( geometry, material );
-        newCube.className = "noteCube";
-        newCube.name = noteObj.noteText;
-        newCube.userData = noteObj;
-        newCube.position.set(noteObj.px,noteObj.py,noteObj.pz);
-        scene.add(newCube);
-        cubes.push(newCube);
-        
+          }
+          loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
+        });
         var text = document.createElement( 'div' );
         text.className = 'noteText';
         text.textContent = noteObj.noteText;
 
         var label = new Three.CSS2DObject( text );
-        label.name = "Label:" + noteObj.noteText;
+        label.name = "Label: " + noteObj.noteText;
         label.position.set(noteObj.px,noteObj.py - 0.5,noteObj.pz);
         scene.add( label );
       });
@@ -295,13 +305,14 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       var scope = this;
 
       for (var i = 0; i < intersects.length; i++) {
-        if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || intersects[i].object.className == 'noteCube')) {
+        
+        if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || intersects[i].object.parent.className == 'noteMarker')) {
           var noteObj = intersects[i].object;
           delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
           let meshMetadata = this.meshMetadata;
          
           // Logic if raycast hits an existing object
-          if (intersects[i].object.className == 'noteCube') {
+          if (intersects[i].object.parent.className == 'noteMarker') {
             // Changes color of object when clicked on
             intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFFFF00} ); 
             // Modal to enter note text
@@ -312,7 +323,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               showCancelButton: true,
               cancelButtonText: "Delete note",
               confirmButtonText: "Save note info",
-              inputValue: noteObj.userData.noteText,
+              inputValue: noteObj.parent.userData.noteText,
               allowOutsideClick: false,
               inputValidator: (noteText) => {
                 if(!noteText){
@@ -327,7 +338,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               if (noteText.dismiss == "cancel") {
                 // Modifies notes list by removing the note being deleted from the array
                 NotesArray.forEach((note) => {
-                  if (note.noteText == noteObj.userData.noteText) {
+                  if (note.noteText == noteObj.parent.userData.noteText) {
                     let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                     meshMetadata.metadata.userdata.notesList.splice(index, 1);
                     meshMetadata.metadata.userdata.notesList = NotesArray;
@@ -335,17 +346,18 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                   }
                 })
                 // Removes note cube and note label from the scene 
-                scene.remove(scene.getObjectByName(noteObj.userData.noteText));
-                scene.remove(scene.getObjectByName("Label:" + noteObj.userData.noteText));
+                scene.remove(scene.getObjectByName(noteObj.parent.userData.noteText));
+                scene.remove(scene.getObjectByName("Label: " + noteObj.parent.userData.noteText));
               }
               // Logic for saving edited note information
               else {
                 NotesArray.forEach((note) => {
-                  if (note.noteText == noteObj.userData.noteText) {
+                  if (note.noteText == noteObj.parent.userData.noteText) {
                     // Removes note label from scene
-                    scene.remove(scene.getObjectByName("Label:" + noteObj.userData.noteText)); 
+                    scene.remove(scene.getObjectByName("Label: " + noteObj.parent.userData.noteText)); 
                     note.noteText = noteText.value;
-                    noteObj.userData.noteText = noteText.value;
+                    noteObj.parent.userData.noteText = noteText.value;
+                    noteObj.parent.name = noteText.value;
                   }
                 })
                 // Update local array and call setMetadata endpoint
@@ -358,8 +370,8 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
 						    text.textContent = noteText.value;
 
                 var label = new Three.CSS2DObject( text );
-                label.name = "Label:" + noteText.value;
-						    label.position.set(noteObj.userData.px, noteObj.userData.py - 0.5, noteObj.userData.pz);
+                label.name = "Label: " + noteText.value;
+						    label.position.set(noteObj.parent.userData.px, noteObj.parent.userData.py - 0.5, noteObj.parent.userData.pz);
                 scene.add( label );
               }
             });
@@ -395,25 +407,32 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 scope._setMeshMetadata({metadata: data}, false);
 
                 // Add cube at raycast point
-                var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
-                var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
+                var mtlLoader = new Three.MTLLoader();
+                mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
+                  materials.preload();
+                  var loader = new Three.OBJLoader();
+                  loader.setMaterials( materials )
+                  // function called on successful load
+                  function callbackOnLoad ( obj ) {
+                    obj.scale.set(0.01,0.01,0.01);
+                    obj.className = "noteMarker";
+                    obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} );
+                    obj.name = noteText;
+                    obj.userData = noteInfo;
+                    obj.position.set(point.x, point.y, point.z);
+                    scene.add( obj );
 
-                var newCube = new Three.Mesh( geometry, material );
-                newCube.className = "noteCube";
-                newCube.name = noteText;
-                newCube.userData = noteInfo;
-                newCube.position.set(point.x, point.y, point.z);
-                scene.add(newCube);
-                cubes.push(newCube);
-          
-                var text = document.createElement( 'div' );
-                text.className = 'noteText';
-						    text.textContent = noteText;
+                    var text = document.createElement( 'div' );
+                    text.className = 'noteText';
+						        text.textContent = noteText;
 
-                var label = new Three.CSS2DObject( text );
-                label.name = "Label:" + noteText;
-						    label.position.set(point.x, point.y - 0.5, point.z);
-                scene.add( label );
+                    var label = new Three.CSS2DObject( text );
+                    label.name = "Label: " + noteText;
+                    label.position.set(point.x, point.y - 0.5, point.z);
+                    scene.add( label );
+                  }
+                  loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
+                });     
               }
             });
           }

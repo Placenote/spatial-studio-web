@@ -339,7 +339,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               if (noteText.dismiss == "cancel") {
                 // Modifies notes list by removing the note being deleted from the array
                 NotesArray.forEach((note) => {
-                  if (note.noteText == noteObj.parent.userData.noteText) {
+                  if (note.noteText == noteObj.parent.userData.noteText && note.px == noteObj.parent.position.x && note.py == noteObj.parent.position.y && note.pz == noteObj.parent.position.z) {
                     let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                     meshMetadata.metadata.userdata.notesList.splice(index, 1);
                     meshMetadata.metadata.userdata.notesList = NotesArray;
@@ -347,15 +347,25 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                   }
                 })
                 // Removes note cube and note label from the scene 
-                scene.remove(scene.getObjectByName(noteObj.parent.userData.noteText));
-                scene.remove(scene.getObjectByName("Label: " + noteObj.parent.userData.noteText));
+                scene.remove(scene.getObjectById(noteObj.parent.id));
+
+                // This loop is necessary for removing correct label if there are multiple labels with the same text by comparing position values
+                scene.children.forEach((child) => {
+                  if (child.name == "Label: " + noteObj.parent.userData.noteText && child.position.x == noteObj.parent.position.x && child.position.y == noteObj.parent.position.y - 0.5 && child.position.z == noteObj.parent.position.z) {
+                    scene.remove(child);
+                  }
+                });
               }
               // Logic for saving edited note information
               else {
                 NotesArray.forEach((note) => {
                   if (note.noteText == noteObj.parent.userData.noteText) {
                     // Removes note label from scene
-                    scene.remove(scene.getObjectByName("Label: " + noteObj.parent.userData.noteText)); 
+                    scene.children.forEach((child) => {
+                      if (child.name == "Label: " + noteObj.parent.userData.noteText && child.position.x == noteObj.parent.position.x && child.position.y == noteObj.parent.position.y - 0.5 && child.position.z == noteObj.parent.position.z) {
+                        scene.remove(child);
+                      }
+                    }); 
                     note.noteText = noteText.value;
                     noteObj.parent.userData.noteText = noteText.value;
                     noteObj.parent.name = noteText.value;

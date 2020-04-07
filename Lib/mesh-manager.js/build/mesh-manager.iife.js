@@ -21,6 +21,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       this.lastRaycastPoint;
       this.logging = false;
       this.meshMetadata = null;
+      this.NotesArray = [];
     }
     /**
      * @desc HELPER METHOD: Retrieves mesh metadata. 
@@ -38,10 +39,10 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       Http.onreadystatechange = (e) => {
       const jsonRes = JSON.parse(Http.response);
       this.meshMetadata = jsonRes;
-      if (jsonRes.metadata.userdata) { 
-        NotesArray = jsonRes.metadata.userdata.notesList;
+      if (jsonRes.metadata.userdata.notesList) { 
+        this.NotesArray = jsonRes.metadata.userdata.notesList;
       }
-      NotesArray.forEach((noteObj) => {
+      this.NotesArray.forEach((noteObj) => {
         // For some reason, _init() is being called twice, so this will prevent duplicate scene children
         if (scene.getObjectByName(noteObj.noteText)) {
           return;
@@ -338,11 +339,11 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               // Logic for delete button on edit popup
               if (noteText.dismiss == "cancel") {
                 // Modifies notes list by removing the note being deleted from the array
-                NotesArray.forEach((note) => {
+                scope.NotesArray.forEach((note) => {
                   if (note.noteText == noteObj.parent.userData.noteText && note.px == noteObj.parent.position.x && note.py == noteObj.parent.position.y && note.pz == noteObj.parent.position.z) {
                     let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                     meshMetadata.metadata.userdata.notesList.splice(index, 1);
-                    meshMetadata.metadata.userdata.notesList = NotesArray;
+                    meshMetadata.metadata.userdata.notesList = scope.NotesArray;
                     scope._setMeshMetadata(meshMetadata, true);
                   }
                 })
@@ -358,7 +359,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               }
               // Logic for saving edited note information
               else {
-                NotesArray.forEach((note) => {
+                scope.NotesArray.forEach((note) => {
                   if (note.noteText == noteObj.parent.userData.noteText) {
                     // Removes note label from scene
                     scene.children.forEach((child) => {
@@ -372,7 +373,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                   }
                 })
                 // Update local array and call setMetadata endpoint
-                meshMetadata.metadata.userdata.notesList = NotesArray;
+                meshMetadata.metadata.userdata.notesList = scope.NotesArray;
                 scope._setMeshMetadata(meshMetadata, false);
 
                 // Create a new label for the note
@@ -412,8 +413,8 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                 var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText);
                 const location = new MapLocation(0,0,0);
   
-                NotesArray.push(noteInfo);
-                let notesList = {notesList: NotesArray};
+                scope.NotesArray.push(noteInfo);
+                let notesList = {notesList: scope.NotesArray};
                 let data = new MapMetadataSettable("Processed Mesh", location, notesList);
                 scope._setMeshMetadata({metadata: data}, false);
 

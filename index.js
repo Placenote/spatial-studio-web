@@ -4,7 +4,6 @@ const hiResPositions = []; // Overview img camera positions
 const hiResQuaternions = []; // Overview img camera rotations
 const placenoteMesh = new MeshManager.PlacenoteMesh();
 
-var NotesArray =  [];
 var loadedMeshApiKey = "empty";
 var loadedMeshMapId = "empty";
 

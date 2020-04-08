@@ -56,17 +56,16 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
           materials.preload();
           var loader = new Three.OBJLoader();
           loader.setMaterials( materials )
-          // function called on successful load
+          // This function is called on successful load
           function callbackOnLoad ( obj ) {
-            obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} );
-            obj.scale.set(0.01,0.01,0.01);
+            obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} ); // Sets object material to blue (temporary solution to Pin.mtl issue)
+            obj.scale.set(0.01,0.01,0.01); // Scales the object size down to fit the mesh
             obj.className = "noteMarker";
             obj.name = noteObj.noteText;
             obj.userData = noteObj;
             obj.position.set(noteObj.px,noteObj.py,noteObj.pz);
-            scene.add( obj );
-            markers.push(obj);
-
+            scene.add( obj );  
+            markers.push(obj);  // Adds to markers array defined in index.js
           }
           loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
         });
@@ -116,10 +115,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
           });
         }
         else {
-          Swal.fire({
-            icon: 'success',
-            text: 'Note info has been saved!',
-          });
+          Swal.close();
         }
       }
       if (Http.status == 400) {
@@ -307,7 +303,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       var scope = this;
 
       for (var i = 0; i < intersects.length; i++) {
-        
+        // Checks if raycast hits either the mesh or an existing note marker
         if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || intersects[i].object.parent.className == 'noteMarker')) {
           var noteObj = intersects[i].object;
           delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
@@ -325,7 +321,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               showCancelButton: true,
               cancelButtonText: "Delete note",
               confirmButtonText: "Save note info",
-              inputValue: noteObj.parent.userData.noteText,
+              inputValue: noteObj.parent.userData.noteText, // Edit existing note text for that object
               allowOutsideClick: false,
               inputValidator: (noteText) => {
                 if(!noteText){
@@ -340,6 +336,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               if (noteText.dismiss == "cancel") {
                 // Modifies notes list by removing the note being deleted from the array
                 scope.NotesArray.forEach((note) => {
+                  // Compares note text and position values, which prevents deletion errors when multiple notes have the same note text
                   if (note.noteText == noteObj.parent.userData.noteText && note.px == noteObj.parent.position.x && note.py == noteObj.parent.position.y && note.pz == noteObj.parent.position.z) {
                     let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                     meshMetadata.metadata.userdata.notesList.splice(index, 1);
@@ -399,7 +396,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               cancelButtonText: "Cancel",
               confirmButtonText: "Save note info",
               allowOutsideClick: false,
-              inputValue: noteObj.userData.noteText,
               inputValidator: (noteText) => {
                 if(!noteText){
                     return 'You need to enter text!';       
@@ -410,12 +406,12 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
               },
               preConfirm: function(noteText) {
                 var point = scope.getRaycastPoint();
-                var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText);
-                const location = new MapLocation(0,0,0);
+                var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText); // Class defined in index.js
+                const location = new MapLocation(0,0,0); // Class defined in index.js
   
                 scope.NotesArray.push(noteInfo);
                 let notesList = {notesList: scope.NotesArray};
-                let data = new MapMetadataSettable("Processed Mesh", location, notesList);
+                let data = new MapMetadataSettable(meshMetadata.metadata.name, location, notesList); // Class defined in index.js
                 scope._setMeshMetadata({metadata: data}, false);
 
                 // Add cube at raycast point
@@ -424,7 +420,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
                   materials.preload();
                   var loader = new Three.OBJLoader();
                   loader.setMaterials( materials )
-                  // function called on successful load
+                  // This function is called on successful load
                   function callbackOnLoad ( obj ) {
                     obj.scale.set(0.01,0.01,0.01);
                     obj.className = "noteMarker";

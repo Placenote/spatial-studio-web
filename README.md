@@ -7,13 +7,13 @@ The Placenote Web API allows for:
 * Providing raycast based hit testing on the world mesh 
 * Writing data to Placenote meta data store 
 
-# Build and Run
-Install the Google Chrome Extension 'Web Server for Chrome', and choose the folder that contains spatial-studio-web
+# Web Development
+Install the Google Chrome Extension 'Web Server for Chrome', and choose the folder that contains spatial-studio-web.
 ### Get Started
-Please install dependencies by running `npm install` in Lib/mesh-manager.js/ folder
+Please install dependencies by running `npm install` in Lib/mesh-manager.js/ folder.
 
 ### Build
 To build you can run `npm run build`. This will create 3 .js files in Lib/mesh-manager.js/build/ folder.
 
 ### Run
-To run, navigate to the localhost link provided by 'Web Server for Chrome'
+To run, navigate to the localhost link provided by 'Web Server for Chrome'.

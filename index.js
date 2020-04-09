@@ -263,7 +263,7 @@ var camera = new Three.PerspectiveCamera( 50, cameraAspect, 0.1, 1000);
 
 camera.position.z = 15;
 camera.position.y = 10;
-camera.lookAt(new Three.Vector3(0,0,0));
+//camera.lookAt(new Three.Vector3(0,0,0));
 
 scene.add(new Three.AxesHelper(0.5));
 
@@ -286,6 +286,7 @@ controls.minDistance = 2;
 controls.enableDamping = true;
 controls.dampingFactor = 0.25;
 controls.enableZoom = true;
+controls.enablePan = false;
 controls.maxPolarAngle = Math.PI/2;
 
 scene.add( new Three.AmbientLight());

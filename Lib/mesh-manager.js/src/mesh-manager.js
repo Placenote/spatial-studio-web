@@ -624,6 +624,20 @@ xhr.send();
       if (scope.logging) console.log('Loading mesh complete');
       onLoad(mesh);
       scope._getMeshMetadata();
+      var meshCentre = getCenterPoint(mesh);
+      controls.target.set(meshCentre.x,meshCentre.y,meshCentre.z); 
+      controls.update();
+      function getCenterPoint(mesh) {
+        var box = new Three.BoxHelper( mesh, 0xffff00 ); 
+        var middle = new Three.Vector3();
+        var geometry = box.geometry;
+        geometry.computeBoundingBox();
+        middle.x = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
+        middle.y = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
+        middle.z = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
+        box.localToWorld( middle );
+        return middle;
+      }
     };
     
     var objLoader = new OBJLoader2();

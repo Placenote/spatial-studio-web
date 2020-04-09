@@ -90,7 +90,7 @@ var PlacenoteMesh = (function () {
       }
     };
 
-     /**
+    /**
     * @desc HELPER METHOD: Sets mesh metadata. 
     * Makes Http request to set metadata
     */
@@ -134,6 +134,21 @@ var PlacenoteMesh = (function () {
       }
     }
    }
+   /**
+    * @desc HELPER METHOD: Calculates centre of object. 
+    * Returns 3D position of centre of object
+    */
+   PlacenoteMesh.prototype._getCenterPoint = function (obj) {
+    var box = new Three.BoxHelper( obj, 0xffff00 ); 
+    var middle = new Three.Vector3();
+    var geometry = box.geometry;
+    geometry.computeBoundingBox();
+    middle.x = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
+    middle.y = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
+    middle.z = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
+    box.localToWorld( middle );
+    return middle;
+  }
   /**
   * @desc HELPER METHOD: initializes mesh for clickety click. 
   * Makes Http request to download dataset.json
@@ -400,7 +415,7 @@ xhr.send();
               let data = new MapMetadataSettable(meshMetadata.metadata.name, location, notesList); // Class defined in index.js
               scope._setMeshMetadata({metadata: data}, false);
 
-              // Add cube at raycast point
+              // Add marker at raycast point
               var mtlLoader = new Three.MTLLoader();
               mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
                 materials.preload();
@@ -624,20 +639,9 @@ xhr.send();
       if (scope.logging) console.log('Loading mesh complete');
       onLoad(mesh);
       scope._getMeshMetadata();
-      var meshCentre = getCenterPoint(mesh);
+      var meshCentre = scope._getCenterPoint(mesh);
       controls.target.set(meshCentre.x,meshCentre.y,meshCentre.z); 
       controls.update();
-      function getCenterPoint(mesh) {
-        var box = new Three.BoxHelper( mesh, 0xffff00 ); 
-        var middle = new Three.Vector3();
-        var geometry = box.geometry;
-        geometry.computeBoundingBox();
-        middle.x = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
-        middle.y = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
-        middle.z = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
-        box.localToWorld( middle );
-        return middle;
-      }
     };
     
     var objLoader = new OBJLoader2();

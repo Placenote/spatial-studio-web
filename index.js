@@ -281,8 +281,8 @@ document.getElementById('threeViewer').appendChild(renderer.domElement);
 document.getElementById('threeViewer').appendChild(labelRenderer.domElement);
 var controls = new Three.OrbitControls(camera, renderer.domElement);
 controls.enabled = true;
-controls.maxDistance = 20;
-controls.minDistance = 2;
+controls.maxDistance = 10;
+controls.minDistance = 4;
 controls.enableDamping = true;
 controls.dampingFactor = 0.25;
 controls.enableZoom = true;
@@ -291,6 +291,8 @@ controls.maxPolarAngle = Math.PI/2;
 
 scene.add( new Three.AmbientLight());
 var markers = [];
+var labels = [];
+var index = 0;
 
 // END Three js viewer init
 
@@ -348,9 +350,18 @@ function onShareLinkButtonClick()
 
     document.getElementById('sharelink').style.display = 'none';
   }
-
-
-
+}
+function onViewNoteButtonClick() {
+  console.log('labels:', labels);
+  console.log("index.start:", index);
+  console.log('length:', labels.length);
+  if (index == labels.length){
+    index = 0;
+  }
+  var point = labels[index].position;
+  controls.target.set(point.x,point.y,point.z);
+  controls.update();
+  index++;
 }
 class MapMetadataSettable {
   constructor(name, location, userdata) {

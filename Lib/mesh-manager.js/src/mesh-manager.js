@@ -80,11 +80,13 @@ var PlacenoteMesh = (function () {
         var text = document.createElement( 'div' );
         text.className = 'noteText';
         text.textContent = noteObj.noteText;
+        text.style.display = "block";
 
         var label = new Three.CSS2DObject( text );
         label.name = "Label: " + noteObj.noteText;
-        label.position.set(noteObj.px,noteObj.py - 0.5,noteObj.pz);
+        label.position.set(noteObj.px,noteObj.py - 0.1,noteObj.pz);
         scene.add( label );
+        labels.push(label);
       });
       return this.meshMetadata;
       }
@@ -350,7 +352,7 @@ xhr.send();
 
               // This loop is necessary for removing correct label if there are multiple labels with the same text by comparing position values
               scene.children.forEach((child) => {
-                if (child.name == "Label: " + noteObj.parent.userData.noteText && child.position.x == noteObj.parent.position.x && child.position.y == noteObj.parent.position.y - 0.5 && child.position.z == noteObj.parent.position.z) {
+                if (child.name == "Label: " + noteObj.parent.userData.noteText && child.position.x == noteObj.parent.position.x && child.position.y == noteObj.parent.position.y - 0.1 && child.position.z == noteObj.parent.position.z) {
                   scene.remove(child);
                 }
               });
@@ -361,7 +363,7 @@ xhr.send();
                 if (note.noteText == noteObj.parent.userData.noteText) {
                   // Removes note label from scene
                   scene.children.forEach((child) => {
-                    if (child.name == "Label: " + noteObj.parent.userData.noteText && child.position.x == noteObj.parent.position.x && child.position.y == noteObj.parent.position.y - 0.5 && child.position.z == noteObj.parent.position.z) {
+                    if (child.name == "Label: " + noteObj.parent.userData.noteText && child.position.x == noteObj.parent.position.x && child.position.y == noteObj.parent.position.y - 0.1 && child.position.z == noteObj.parent.position.z) {
                       scene.remove(child);
                     }
                   }); 
@@ -378,11 +380,13 @@ xhr.send();
               var text = document.createElement( 'div' );
               text.className = 'noteText';
               text.textContent = noteText.value;
+              text.style.display = "block";
 
               var label = new Three.CSS2DObject( text );
               label.name = "Label: " + noteText.value;
-              label.position.set(noteObj.parent.userData.px, noteObj.parent.userData.py - 0.5, noteObj.parent.userData.pz);
+              label.position.set(noteObj.parent.userData.px, noteObj.parent.userData.py - 0.1, noteObj.parent.userData.pz);
               scene.add( label );
+              labels.push(label);
             }
           });
         }
@@ -437,11 +441,13 @@ xhr.send();
               var text = document.createElement( 'div' );
               text.className = 'noteText';
               text.textContent = noteText;
+              text.style.display = "block";
 
               var label = new Three.CSS2DObject( text );
               label.name = "Label: " + noteText;
-              label.position.set(point.x, point.y - 0.5, point.z);
+              label.position.set(point.x, point.y - 0.1, point.z);
               scene.add( label );  
+              labels.push(label);
             }
           });
         }

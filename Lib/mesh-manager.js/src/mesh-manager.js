@@ -29,7 +29,6 @@ var PlacenoteMesh = (function () {
     this.lastRaycastPoint;
     this.logging = false;
     this.meshMetadata = null;
-    this.NotesArray = [];
   }
   /**
      * @desc HELPER METHOD: Retrieves mesh metadata. 
@@ -48,9 +47,9 @@ var PlacenoteMesh = (function () {
       const jsonRes = JSON.parse(Http.response);
       this.meshMetadata = jsonRes;
       if (jsonRes.metadata.userdata.notesList) { 
-        this.NotesArray = jsonRes.metadata.userdata.notesList;
+        NotesArray = jsonRes.metadata.userdata.notesList;
       }
-      this.NotesArray.forEach((noteObj) => {
+      NotesArray.forEach((noteObj) => {
         // For some reason, _init() is being called twice, so this will prevent duplicate scene children
         if (scene.getObjectByName(noteObj.noteText)) {
           return;
@@ -86,7 +85,7 @@ var PlacenoteMesh = (function () {
         label.name = "Label: " + noteObj.noteText;
         label.position.set(noteObj.px,noteObj.py - 0.1,noteObj.pz);
         scene.add( label );
-        labels.push(label);
+        NotesArray.push(label);
       });
       return this.meshMetadata;
       }
@@ -338,12 +337,12 @@ xhr.send();
             // Logic for delete button on edit popup
             if (noteText.dismiss == "cancel") {
               // Modifies notes list by removing the note being deleted from the array
-              scope.NotesArray.forEach((note) => {
+              NotesArray.forEach((note) => {
                 // Compares note text and position values, which prevents deletion errors when multiple notes have the same note text
                 if (note.noteText == noteObj.parent.userData.noteText && note.px == noteObj.parent.position.x && note.py == noteObj.parent.position.y && note.pz == noteObj.parent.position.z) {
                   let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                   meshMetadata.metadata.userdata.notesList.splice(index, 1);
-                  meshMetadata.metadata.userdata.notesList = scope.NotesArray;
+                  meshMetadata.metadata.userdata.notesList = NotesArray;
                   scope._setMeshMetadata(meshMetadata, true);
                 }
               })
@@ -359,7 +358,7 @@ xhr.send();
             }
             // Logic for saving edited note information
             else {
-              scope.NotesArray.forEach((note) => {
+              NotesArray.forEach((note) => {
                 if (note.noteText == noteObj.parent.userData.noteText) {
                   // Removes note label from scene
                   scene.children.forEach((child) => {
@@ -373,7 +372,7 @@ xhr.send();
                 }
               })
               // Update local array and call setMetadata endpoint
-              meshMetadata.metadata.userdata.notesList = scope.NotesArray;
+              meshMetadata.metadata.userdata.notesList = NotesArray;
               scope._setMeshMetadata(meshMetadata, false);
 
               // Create a new label for the note
@@ -386,7 +385,7 @@ xhr.send();
               label.name = "Label: " + noteText.value;
               label.position.set(noteObj.parent.userData.px, noteObj.parent.userData.py - 0.1, noteObj.parent.userData.pz);
               scene.add( label );
-              labels.push(label);
+              NotesArray.push(label);
             }
           });
         }
@@ -414,8 +413,8 @@ xhr.send();
               var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText); // Class defined in index.js
               const location = new MapLocation(0,0,0); // Class defined in index.js
 
-              scope.NotesArray.push(noteInfo);
-              let notesList = {notesList: scope.NotesArray};
+              NotesArray.push(noteInfo);
+              let notesList = {notesList: NotesArray};
               let data = new MapMetadataSettable(meshMetadata.metadata.name, location, notesList); // Class defined in index.js
               scope._setMeshMetadata({metadata: data}, false);
 
@@ -447,7 +446,7 @@ xhr.send();
               label.name = "Label: " + noteText;
               label.position.set(point.x, point.y - 0.1, point.z);
               scene.add( label );  
-              labels.push(label);
+              NotesArray.push(label);
             }
           });
         }

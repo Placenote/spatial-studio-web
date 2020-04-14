@@ -291,8 +291,7 @@ controls.maxPolarAngle = Math.PI/2;
 
 scene.add( new Three.AmbientLight());
 var markers = [];
-var NotesArray = [];
-var labelIndex = 0;
+var labelIndex = -1;
 
 // END Three js viewer init
 
@@ -352,22 +351,22 @@ function onShareLinkButtonClick()
   }
 }
 function onNextNoteButtonClick() {
-  if (labelIndex == NotesArray.length){
+  ++labelIndex;
+  if (labelIndex == placenoteMesh.NotesArray.length){
     labelIndex = 0;
   }
-  controls.target.set(NotesArray[labelIndex].px,NotesArray[labelIndex].py,NotesArray[labelIndex].pz);
+  controls.target.set(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
   controls.update();
-  labelIndex++;
 }
 
 function onPrevNoteButtonClick() {
-  if (labelIndex == 0){
-    labelIndex = NotesArray.length - 1;
+  if (labelIndex <= 0){
+    labelIndex = placenoteMesh.NotesArray.length - 1;
   }
   else {
-    labelIndex--;
+    --labelIndex;
   }
-  controls.target.set(NotesArray[labelIndex].px,NotesArray[labelIndex].py,NotesArray[labelIndex].pz);
+  controls.target.set(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
   controls.update();
 }
 class MapMetadataSettable {

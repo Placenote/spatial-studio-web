@@ -393,7 +393,14 @@ xhr.send();
         }
         // Logic if raycast hits the mesh
         if (intersects[i].object.name == 'PlacenoteMesh') {
-           // Modal to enter note text
+          // Update the target for OrbitControls and move camera closer to point
+          var point = intersects[i].point;
+          var vector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
+          controls.target.set(point.x,point.y,point.z);
+          var distance = vector.distanceTo(point) - 2.5;
+          camera.translateZ(-distance);
+
+          // Modal to enter note text
            Swal.fire({
             title: 'Create a Note!',
             text: 'Enter note text here:',
@@ -411,7 +418,6 @@ xhr.send();
               }
             },
             preConfirm: function(noteText) {
-              var point = scope.getRaycastPoint();
               var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText); // Class defined in index.js
               const location = new MapLocation(0,0,0); // Class defined in index.js
 
@@ -447,7 +453,7 @@ xhr.send();
               var label = new Three.CSS2DObject( text );
               label.name = "Label: " + noteText;
               label.position.set(point.x, point.y - 0.1, point.z);
-              scene.add( label );  
+              scene.add( label ); 
             }
           });
         }
@@ -647,7 +653,6 @@ xhr.send();
       scope._getMeshMetadata();
       scope.meshObj = mesh;
       scope._setCameraOrbitOnCenter();
-      
     };
     
     var objLoader = new OBJLoader2();

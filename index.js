@@ -282,7 +282,7 @@ document.getElementById('threeViewer').appendChild(labelRenderer.domElement);
 var controls = new Three.OrbitControls(camera, renderer.domElement);
 controls.enabled = true;
 controls.maxDistance = 10;
-controls.minDistance = 4;
+controls.minDistance = 2;
 controls.enableDamping = true;
 controls.dampingFactor = 0.25;
 controls.enableZoom = true;
@@ -356,8 +356,12 @@ function onNextNoteButtonClick() {
   if (labelIndex == placenoteMesh.NotesArray.length) {
     labelIndex = 0; // If the end of array is reached, reset to first array entry
   }
-  // Update the target for OrbitControls
-  controls.target.set(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
+  // Update the target for OrbitControls and moves camera closer to note
+  var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
+  var noteVector = new Three.Vector3(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
+  controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
+  var distance = cameraVector.distanceTo(noteVector) - 2.5;
+  camera.translateZ(-distance);
   controls.update();
 }
 
@@ -368,8 +372,12 @@ function onPrevNoteButtonClick() {
   else {
     --labelIndex; // decrements index
   }
-  // Update the target for OrbitControls
-  controls.target.set(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
+  // Update the target for OrbitControls and moves camera closer to note
+  var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
+  var noteVector = new Three.Vector3(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
+  controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
+  var distance = cameraVector.distanceTo(noteVector) - 2.5;
+  camera.translateZ(-distance);
   controls.update();
 }
 

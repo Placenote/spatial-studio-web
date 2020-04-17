@@ -30,6 +30,7 @@ var PlacenoteMesh = (function () {
     this.logging = false;
     this.meshMetadata = null;
     this.NotesArray = [];
+    this.meshObj = null;
   }
   /**
      * @desc HELPER METHOD: Retrieves mesh metadata. 
@@ -136,11 +137,11 @@ var PlacenoteMesh = (function () {
     }
    }
    /**
-    * @desc HELPER METHOD: Calculates centre of object. 
-    * Returns 3D position of centre of object
+    * @desc HELPER METHOD: Calculates centre of mesh. 
+    * Sets control target/camera orbit on the center point.
     */
-   PlacenoteMesh.prototype._getCenterPoint = function (obj) {
-    var box = new Three.BoxHelper( obj, 0xffff00 ); 
+   PlacenoteMesh.prototype._setCameraOrbitOnCenter = function () {
+    var box = new Three.BoxHelper( this.meshObj, 0xffff00 ); 
     var middle = new Three.Vector3();
     var geometry = box.geometry;
     geometry.computeBoundingBox();
@@ -148,7 +149,9 @@ var PlacenoteMesh = (function () {
     middle.y = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
     middle.z = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
     box.localToWorld( middle );
-    return middle;
+    controls.target.set(middle.x,middle.y,middle.z); 
+    controls.update();
+    return;
   }
   /**
   * @desc HELPER METHOD: initializes mesh for clickety click. 
@@ -642,9 +645,9 @@ xhr.send();
       if (scope.logging) console.log('Loading mesh complete');
       onLoad(mesh);
       scope._getMeshMetadata();
-      var meshCentre = scope._getCenterPoint(mesh);
-      controls.target.set(meshCentre.x,meshCentre.y,meshCentre.z); 
-      controls.update();
+      scope.meshObj = mesh;
+      scope._setCameraOrbitOnCenter();
+      
     };
     
     var objLoader = new OBJLoader2();

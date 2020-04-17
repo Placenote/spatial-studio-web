@@ -350,25 +350,33 @@ function onShareLinkButtonClick()
     document.getElementById('sharelink').style.display = 'none';
   }
 }
+
 function onNextNoteButtonClick() {
-  ++labelIndex;
-  if (labelIndex == placenoteMesh.NotesArray.length){
-    labelIndex = 0;
+  ++labelIndex; // increments index
+  if (labelIndex == placenoteMesh.NotesArray.length) {
+    labelIndex = 0; // If the end of array is reached, reset to first array entry
   }
+  // Update the target for OrbitControls
   controls.target.set(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
   controls.update();
 }
 
 function onPrevNoteButtonClick() {
-  if (labelIndex <= 0){
-    labelIndex = placenoteMesh.NotesArray.length - 1;
+  if (labelIndex <= 0) {
+    labelIndex = placenoteMesh.NotesArray.length - 1;  // If previous button is clicked first, go to last entry
   }
   else {
-    --labelIndex;
+    --labelIndex; // decrements index
   }
+  // Update the target for OrbitControls
   controls.target.set(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
   controls.update();
 }
+
+function onCalibrateButtonClick() {
+  placenoteMesh._setCameraOrbitOnCenter();
+}
+
 class MapMetadataSettable {
   constructor(name, location, userdata) {
     this.name = name;

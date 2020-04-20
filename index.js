@@ -384,6 +384,7 @@ function onPrevNoteButtonClick() {
 function onCalibrateButtonClick() {
   placenoteMesh._setCameraOrbitOnCenter();
 }
+labelIndex = -1;
 
 class MapMetadataSettable {
   constructor(name, location, userdata) {

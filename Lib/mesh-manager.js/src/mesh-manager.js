@@ -52,13 +52,7 @@ var PlacenoteMesh = (function () {
         this.NotesArray = jsonRes.metadata.userdata.notesList;
       }
       this.NotesArray.forEach((noteObj) => {
-        // For some reason, _init() is being called twice, so this will prevent duplicate scene children
-        if (scene.getObjectByName(noteObj.noteText)) {
-          return;
-        }
-        if (scene.getObjectByName("Label: " + noteObj.noteText)) {
-          return;
-        }
+
         // Loads note markers and note labels into the scene
         var mtlLoader = new Three.MTLLoader();
         mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
@@ -67,26 +61,30 @@ var PlacenoteMesh = (function () {
           loader.setMaterials( materials )
           // This function is called on successful load
           function callbackOnLoad ( obj ) {
+            // This will prevent duplicate scene children
+            if (scene.getObjectByName(noteObj.noteText)) {
+              return;
+            }
             obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} ); // Sets object material to blue (temporary solution to Pin.mtl issue)
             obj.scale.set(0.01,0.01,0.01); // Scales the object size down to fit the mesh
             obj.className = "noteMarker";
             obj.name = noteObj.noteText;
             obj.userData = noteObj;
             obj.position.set(noteObj.px,noteObj.py,noteObj.pz);
-            scene.add( obj );  
             markers.push(obj);  // Adds to markers array defined in index.js
+
+            var text = document.createElement( 'div' );
+            text.className = 'noteText';
+            text.textContent = noteObj.noteText;
+            text.style.display = "block";
+            var label = new Three.CSS2DObject( text );
+            label.name = "Label: " + noteObj.noteText;
+            obj.add( label );
+            scene.add( obj );
           }
           loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
         });
-        var text = document.createElement( 'div' );
-        text.className = 'noteText';
-        text.textContent = noteObj.noteText;
-        text.style.display = "block";
-
-        var label = new Three.CSS2DObject( text );
-        label.name = "Label: " + noteObj.noteText;
-        label.position.set(noteObj.px,noteObj.py - 0.1,noteObj.pz);
-        scene.add( label );
+       
       });
       return this.meshMetadata;
       }
@@ -350,25 +348,14 @@ xhr.send();
                 }
               })
               // Removes note cube and note label from the scene 
+              noteObj.parent.remove(noteObj.parent.children[1]);
               scene.remove(scene.getObjectById(noteObj.parent.id));
-
-              // This loop is necessary for removing correct label if there are multiple labels with the same text by comparing position values
-              scene.children.forEach((child) => {
-                if (child.name == "Label: " + noteObj.parent.userData.noteText && child.position.x == noteObj.parent.position.x && child.position.y == noteObj.parent.position.y - 0.1 && child.position.z == noteObj.parent.position.z) {
-                  scene.remove(child);
-                }
-              });
             }
+
             // Logic for saving edited note information
             else {
               scope.NotesArray.forEach((note) => {
                 if (note.noteText == noteObj.parent.userData.noteText) {
-                  // Removes note label from scene
-                  scene.children.forEach((child) => {
-                    if (child.name == "Label: " + noteObj.parent.userData.noteText && child.position.x == noteObj.parent.position.x && child.position.y == noteObj.parent.position.y - 0.1 && child.position.z == noteObj.parent.position.z) {
-                      scene.remove(child);
-                    }
-                  }); 
                   note.noteText = noteText.value;
                   noteObj.parent.userData.noteText = noteText.value;
                   noteObj.parent.name = noteText.value;
@@ -378,7 +365,10 @@ xhr.send();
               meshMetadata.metadata.userdata.notesList = scope.NotesArray;
               scope._setMeshMetadata(meshMetadata, false);
 
-              // Create a new label for the note
+              // Remove label for the note
+              noteObj.parent.remove(noteObj.parent.children[1]);
+
+              // Create and add new label for note
               var text = document.createElement( 'div' );
               text.className = 'noteText';
               text.textContent = noteText.value;
@@ -386,8 +376,7 @@ xhr.send();
 
               var label = new Three.CSS2DObject( text );
               label.name = "Label: " + noteText.value;
-              label.position.set(noteObj.parent.userData.px, noteObj.parent.userData.py - 0.1, noteObj.parent.userData.pz);
-              scene.add( label );
+              noteObj.parent.add( label );
             }
           });
         }
@@ -440,20 +429,19 @@ xhr.send();
                   obj.name = noteText;
                   obj.userData = noteInfo;
                   obj.position.set(point.x, point.y, point.z);
-                  scene.add( obj );
-                  markers.push(obj);
+                  markers.push(obj); // Adds to markers array defined in index.js
+                  var text = document.createElement( 'div' );
+                  text.className = 'noteText';
+                  text.textContent = noteText;
+                  text.style.display = "block";
+                  var label = new Three.CSS2DObject( text );
+                  label.name = "Label: " + noteText;
+                  obj.add( label );
+                  scene.add( obj ); 
                 }
                 loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
               });   
-              var text = document.createElement( 'div' );
-              text.className = 'noteText';
-              text.textContent = noteText;
-              text.style.display = "block";
-
-              var label = new Three.CSS2DObject( text );
-              label.name = "Label: " + noteText;
-              label.position.set(point.x, point.y - 0.1, point.z);
-              scene.add( label ); 
+             
             }
           });
         }

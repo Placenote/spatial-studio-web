@@ -383,8 +383,38 @@ function onPrevNoteButtonClick() {
 
 function onCalibrateButtonClick() {
   placenoteMesh._setCameraOrbitOnCenter();
+  labelIndex = -1;
 }
-labelIndex = -1;
+
+function onNotesViewButtonClick() {
+  var noteOptions = {};
+  var noteIndex = 0;
+  placenoteMesh.NotesArray.forEach(function(noteObj) {
+    noteOptions[noteIndex] = noteObj.noteText;
+    ++noteIndex;
+  })
+    Swal.fire({
+      title: 'Select a Note!',
+      html: "Jump to the selected note by pressing 'OK'",
+      input:'select',
+      inputOptions: noteOptions,
+      showCloseButton: true,
+      showCancelButton: true,
+      focusConfirm: false,
+      inputValidator: (value) => {
+        return new Promise((resolve) => {
+          // Update the target for OrbitControls and moves camera closer to note
+          var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
+          var noteVector = new Three.Vector3(placenoteMesh.NotesArray[value].px,placenoteMesh.NotesArray[value].py,placenoteMesh.NotesArray[value].pz);
+          controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
+          var distance = cameraVector.distanceTo(noteVector) - 2.5;
+          camera.translateZ(-distance);
+          controls.update();
+          resolve();
+        })
+      }
+    });
+}
 
 class MapMetadataSettable {
   constructor(name, location, userdata) {

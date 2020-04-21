@@ -76,7 +76,7 @@ var PlacenoteMesh = (function () {
             var text = document.createElement( 'div' );
             text.className = 'noteText';
             text.textContent = noteObj.noteText;
-            text.style.display = "block";
+            text.style.zIndex = '-9999';
             var label = new Three.CSS2DObject( text );
             label.name = "Label: " + noteObj.noteText;
             obj.add( label );
@@ -372,7 +372,7 @@ xhr.send();
               var text = document.createElement( 'div' );
               text.className = 'noteText';
               text.textContent = noteText.value;
-              text.style.display = "block";
+              text.style.zIndex = '-9999';
 
               var label = new Three.CSS2DObject( text );
               label.name = "Label: " + noteText.value;
@@ -433,7 +433,7 @@ xhr.send();
                   var text = document.createElement( 'div' );
                   text.className = 'noteText';
                   text.textContent = noteText;
-                  text.style.display = "block";
+                  text.style.zIndex = '-9999';
                   var label = new Three.CSS2DObject( text );
                   label.name = "Label: " + noteText;
                   obj.add( label );

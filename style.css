@@ -66,12 +66,13 @@
   button {
     font-size: 16px;
     border-radius: 3px;
-    background-color: lightgrey;
-    border: 1px solid grey;
+    background-color: white;
+    border: 1px solid black;
     cursor: pointer;
     padding: 12px;
     margin-right: 10px;
     margin-top: 5px;
+    z-index: 3;
   }
   
   button:hover {
@@ -86,6 +87,8 @@
   .header{
     padding: 10px 0;
     background-color: #0095F2; 
+    position: relative;
+    z-index: 2;
   }
 
   .header h1{

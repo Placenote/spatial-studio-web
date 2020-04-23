@@ -295,20 +295,22 @@ var labelIndex = -1;
 
 // END Three js viewer init
 
-
-function onToggleCameraClick(){
-
+function onToggleCameraButtonClick() {
+  var middle = placenoteMesh._setCameraOrbitOnCenter();
   if (isCameraTopDown == false) {
     isCameraTopDown = true;
-    camera.position.set(0,10,0);
-    camera.lookAt(new Three.Vector3(0,0,0));
+    camera.position.set(middle.x,10,middle.z);
+    placenoteMesh._setCameraOrbitOnCenter();
+    controls.enableRotate = false;
+    controls.enablePan = true;
   }
   else {
     isCameraTopDown = false;
     camera.position.set(0,10,15);
-    camera.lookAt(new Three.Vector3(0,0,0));
+    controls.enableRotate = true;
+    controls.enablePan = false;
   }
-
+  controls.update();
 }
 
 var linkModal = document.getElementById("linkmodal");
@@ -397,6 +399,7 @@ function onNotesViewButtonClick() {
       title: 'Select a Note!',
       html: "Jump to the selected note by pressing 'OK'",
       input:'select',
+      inputPlaceholder: 'Pick a note',
       inputOptions: noteOptions,
       showCloseButton: true,
       showCancelButton: true,

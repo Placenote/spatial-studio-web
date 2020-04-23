@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>Placenote 3D Explorer</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   </head>
   <body>
     <div class="container">
@@ -41,12 +42,13 @@
             </div>
           </div>
           <div class="content" id="threejscontainer">
+            <button style="padding-left:25px; background:none; border:none;" title="Toggle View" class="ui" id="toggleViewButton" onclick="onToggleCameraButtonClick()"><i class="fa fa-eye" style="font-size:30px;color:white"></i></button>
                 <div class="content" id="threeViewer">
-                  <button style="right:20px; top:100px;" class="ui" id="nextNoteButton"onclick="onNextNoteButtonClick()" style="display:none;">></button>
-                  <button style="right:55px; top:100px;" class="ui" id="calibrateButton"onclick="onCalibrateButtonClick()" style="display:none;">&#9737;</button>
-                  <button style="right:96px; top:100px;" class="ui" id="prevNoteButton"onclick="onPrevNoteButtonClick()" style="display:none;">&#60;</button>
+                  <button style="right:20px; top:100px;" class="ui"  title="Previous Note" id="nextNoteButton"onclick="onNextNoteButtonClick()" ><i class="fa fa-arrow-circle-right"></i></button>
+                  <button style="right:60px; top:100px;" class="ui" title="Recalibrate" id="calibrateButton"onclick="onCalibrateButtonClick()"><i class="fa fa-street-view"></i></button>
+                  <button style="right:100px; top:100px;" class="ui" title="Next Note" id="prevNoteButton"onclick="onPrevNoteButtonClick()"><i class="fa fa-arrow-circle-left"></i></button>
                   <button style="right:20px; top:20px;" class="ui" id="shareLinkButton" onclick="onShareLinkButtonClick()">Get Share Link</button>
-                  <button style="right:22px; top:175px;" class="ui" id="notesListModal" onclick="onNotesViewButtonClick()" style="display:none;">View Notes</button>
+                  <button style="right:22px; top:175px;" class="ui" id="notesListModal" onclick="onNotesViewButtonClick()">View Notes</button>
                 </div>
           </div>
         </div>

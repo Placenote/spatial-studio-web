@@ -149,7 +149,7 @@ var PlacenoteMesh = (function () {
     box.localToWorld( middle );
     controls.target.set(middle.x,middle.y,middle.z); 
     controls.update();
-    return;
+    return middle;
   }
   /**
   * @desc HELPER METHOD: initializes mesh for clickety click. 

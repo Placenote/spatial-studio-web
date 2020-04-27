@@ -8,6 +8,7 @@ var loadedMeshApiKey = "empty";
 var loadedMeshMapId = "empty";
 
 var isCameraTopDown = false;
+var isLabelVisible = true;
 // Callback functions
 
 var onKeyFrameUpdate = function(keyframeInfo, camera) {
@@ -312,6 +313,30 @@ function onToggleCameraButtonClick() {
   }
   controls.update();
 }
+function onToggleLabelViewButtonClick() {
+  if (isLabelVisible) {
+    scene.children.forEach((child) => {
+      if (child.className =='noteMarker' && child.children[1]) {
+        child.remove(child.children[1]);
+      }
+    });
+    isLabelVisible= false;
+  }
+  else {
+    scene.children.forEach((child) => {
+      if (child.className == 'noteMarker') {
+        var text = document.createElement( 'div' );
+        text.className = 'noteText';
+        text.textContent = child.name;
+        text.style.zIndex = '-9999';
+        var label = new Three.CSS2DObject( text );
+        label.name = "Label: " + child.name;
+        child.add( label );
+      }
+    });
+    isLabelVisible = true;
+  }
+}
 
 var linkModal = document.getElementById("linkmodal");
 var span = document.getElementsByClassName("close")[0];
@@ -406,6 +431,8 @@ function onNotesViewButtonClick() {
       focusConfirm: false,
       inputValidator: (value) => {
         return new Promise((resolve) => {
+          if (value === "") { resolve(); } // If no note is selected but OK is still pressed
+          labelIndex = value;
           // Update the target for OrbitControls and moves camera closer to note
           var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
           var noteVector = new Three.Vector3(placenoteMesh.NotesArray[value].px,placenoteMesh.NotesArray[value].py,placenoteMesh.NotesArray[value].pz);

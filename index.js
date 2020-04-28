@@ -297,8 +297,14 @@ var labelIndex = -1;
 // END Three js viewer init
 
 function onToggleCameraButtonClick() {
+  // Toggle between on and off icons
+  icon = document.getElementById('toggleViewIcon');
+  icon.classList.toggle('fa-eye')
+  icon.classList.toggle('fa-eye-slash');
+
   var middle = placenoteMesh._setCameraOrbitOnCenter();
   if (isCameraTopDown == false) {
+    // Set camera and orbitControl values
     isCameraTopDown = true;
     camera.position.set(middle.x,10,middle.z);
     placenoteMesh._setCameraOrbitOnCenter();
@@ -306,6 +312,7 @@ function onToggleCameraButtonClick() {
     controls.enablePan = true;
   }
   else {
+    // Set camera and orbitControl values
     isCameraTopDown = false;
     camera.position.set(0,10,15);
     controls.enableRotate = true;
@@ -314,6 +321,12 @@ function onToggleCameraButtonClick() {
   controls.update();
 }
 function onToggleLabelViewButtonClick() {
+  // Toggle between on and off icons
+  icon = document.getElementById('toggleLabelIcon');
+  icon.classList.toggle('fa-toggle-on')
+  icon.classList.toggle('fa-toggle-off');
+
+  // Remove labels from note objects
   if (isLabelVisible) {
     scene.children.forEach((child) => {
       if (child.className =='noteMarker' && child.children[1]) {
@@ -322,6 +335,7 @@ function onToggleLabelViewButtonClick() {
     });
     isLabelVisible= false;
   }
+  // Adds labels to note objects
   else {
     scene.children.forEach((child) => {
       if (child.className == 'noteMarker') {

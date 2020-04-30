@@ -30,6 +30,7 @@ var PlacenoteMesh = (function () {
     this.logging = false;
     this.meshMetadata = null;
     this.NotesArray = [];
+    this.RoomsArray = [];
     this.meshObj = null;
   }
   /**
@@ -48,47 +49,69 @@ var PlacenoteMesh = (function () {
       Http.onreadystatechange = (e) => {
       const jsonRes = JSON.parse(Http.response);
       this.meshMetadata = jsonRes;
+      if (!jsonRes.metadata.userdata) { return; }
       if (jsonRes.metadata.userdata.notesList) { 
         this.NotesArray = jsonRes.metadata.userdata.notesList;
-      }
-      this.NotesArray.forEach((noteObj) => {
+        this.NotesArray.forEach((noteObj) => {
+          // Loads note markers and note labels into the scene
+          var mtlLoader = new Three.MTLLoader();
+          mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
+            materials.preload();
+            var loader = new Three.OBJLoader();
+            loader.setMaterials( materials )
+            // This function is called on successful load
+            function callbackOnLoad ( obj ) {
+              // This will prevent duplicate scene children
+              if (scene.getObjectByName(noteObj.noteText)) {
+                return;
+              }
+              obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} ); // Sets object material to blue (temporary solution to Pin.mtl issue)
+              obj.scale.set(0.01,0.01,0.01); // Scales the object size down to fit the mesh
+              obj.className = "noteMarker";
+              obj.name = noteObj.noteText;
+              obj.userData = noteObj;
+              obj.position.set(noteObj.px,noteObj.py,noteObj.pz);
+              markers.push(obj);  // Adds to markers array defined in index.js
 
-        // Loads note markers and note labels into the scene
-        var mtlLoader = new Three.MTLLoader();
-        mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
-          materials.preload();
-          var loader = new Three.OBJLoader();
-          loader.setMaterials( materials )
-          // This function is called on successful load
-          function callbackOnLoad ( obj ) {
-            // This will prevent duplicate scene children
-            if (scene.getObjectByName(noteObj.noteText)) {
-              return;
+              var text = document.createElement( 'div' );
+              text.className = 'labelText';
+              text.textContent = noteObj.noteText;
+              text.style.zIndex = '-9999';
+              var label = new Three.CSS2DObject( text );
+              label.name = "Label: " + noteObj.noteText;
+              obj.add( label );
+              scene.add( obj );
             }
-            obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} ); // Sets object material to blue (temporary solution to Pin.mtl issue)
-            obj.scale.set(0.01,0.01,0.01); // Scales the object size down to fit the mesh
-            obj.className = "noteMarker";
-            obj.name = noteObj.noteText;
-            obj.userData = noteObj;
-            obj.position.set(noteObj.px,noteObj.py,noteObj.pz);
-            markers.push(obj);  // Adds to markers array defined in index.js
-
-            var text = document.createElement( 'div' );
-            text.className = 'noteText';
-            text.textContent = noteObj.noteText;
-            text.style.zIndex = '-9999';
-            var label = new Three.CSS2DObject( text );
-            label.name = "Label: " + noteObj.noteText;
-            obj.add( label );
-            scene.add( obj );
-          }
-          loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
+            loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
+          });  
         });
-       
-      });
-      return this.meshMetadata;
       }
-    };
+      if (jsonRes.metadata.userdata.roomsList) {
+        this.RoomsArray = jsonRes.metadata.userdata.roomsList;
+        this.RoomsArray.forEach((roomObj) => {
+          // This will prevent duplicate scene children
+          if (scene.getObjectByName(roomObj.roomName)) { return; }
+
+          var geometry = new Three.RingGeometry( 0.02, 0.08, 32 );
+          geometry.rotateX(Math.PI/2);
+          var material = new Three.MeshBasicMaterial( { color: 0x00FF7F, side: Three.DoubleSide } );
+          var obj = new Three.Mesh( geometry, material );
+          obj.position.set(roomObj.px, roomObj.py + 0.1, roomObj.pz);
+          obj.className = "roomMarker";
+          obj.name = roomObj.roomName;
+          var text = document.createElement( 'div' );
+          text.className = 'labelText';
+          text.textContent = roomObj.roomName;
+          text.style.zIndex = '-9999';
+          var label = new Three.CSS2DObject( text );
+          label.name = "Label: " + roomObj.roomName;
+          obj.add( label );
+          scene.add( obj );
+        });
+      }
+      return this.meshMetadata;
+    }
+  };
 
     /**
     * @desc HELPER METHOD: Sets mesh metadata. 
@@ -370,7 +393,7 @@ xhr.send();
 
               // Create and add new label for note
               var text = document.createElement( 'div' );
-              text.className = 'noteText';
+              text.className = 'labelText';
               text.textContent = noteText.value;
               text.style.zIndex = '-9999';
 
@@ -389,61 +412,127 @@ xhr.send();
           var distance = vector.distanceTo(point) - 2.5;
           camera.translateZ(-distance);
 
-          // Modal to enter note text
-           Swal.fire({
-            title: 'Create a Note!',
-            text: 'Enter note text here:',
-            input: 'text',
-            showCancelButton: true,
-            cancelButtonText: "Cancel",
-            confirmButtonText: "Save note info",
-            allowOutsideClick: false,
-            inputValidator: (noteText) => {
-              if(!noteText){
-                  return 'You need to enter text!';       
-              }
-              if( noteText.length > 100 ){
-                  return 'You have exceeded 100 characters';
-              }
+          Swal.fire({
+            title: 'Select a marker!',
+            input: 'select',
+            inputOptions: {
+              noteMarker: 'Notes',
+              roomMarker: 'Rooms'
             },
-            preConfirm: function(noteText) {
-              var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText); // Class defined in index.js
-              const location = new MapLocation(0,0,0); // Class defined in index.js
-
-              scope.NotesArray.push(noteInfo);
-              let notesList = {notesList: scope.NotesArray};
-              let data = new MapMetadataSettable(meshMetadata.metadata.name, location, notesList); // Class defined in index.js
-              scope._setMeshMetadata({metadata: data}, false);
-
-              // Add marker at raycast point
-              var mtlLoader = new Three.MTLLoader();
-              mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
-                materials.preload();
-                var loader = new Three.OBJLoader();
-                loader.setMaterials( materials )
-                // This function is called on successful load
-                function callbackOnLoad ( obj ) {
-                  obj.scale.set(0.01,0.01,0.01);
-                  obj.className = "noteMarker";
-                  obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} );
-                  obj.name = noteText;
-                  obj.userData = noteInfo;
-                  obj.position.set(point.x, point.y, point.z);
-                  markers.push(obj); // Adds to markers array defined in index.js
-                  var text = document.createElement( 'div' );
-                  text.className = 'noteText';
-                  text.textContent = noteText;
-                  text.style.zIndex = '-9999';
-                  var label = new Three.CSS2DObject( text );
-                  label.name = "Label: " + noteText;
-                  obj.add( label );
-                  scene.add( obj ); 
+            inputPlaceholder: 'Choose one...',
+            showCancelButton: true,
+            inputValidator: (value) => {
+              return new Promise((resolve) => {
+                if (value === '') { resolve(); } 
+                else if ( value === 'noteMarker') {
+                  resolve();
+                  // Modal to enter note text
+                  Swal.fire({
+                    title: 'Create a Note!',
+                    text: 'Enter note text here:',
+                    input: 'text',
+                    showCancelButton: true,
+                    cancelButtonText: "Cancel",
+                    confirmButtonText: "Save note info",
+                    allowOutsideClick: false,
+                    inputValidator: (noteText) => {
+                      if(!noteText){
+                          return 'You need to enter text!';
+                      }
+                      if( noteText.length > 100 ){
+                          return 'You have exceeded 100 characters';
+                      }
+                    },
+                    preConfirm: function(noteText) {
+                      var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText); // Class defined in index.js
+                      const location = new MapLocation(0,0,0); // Class defined in index.js
+        
+                      scope.NotesArray.push(noteInfo);
+                      let notesList = {notesList: scope.NotesArray};
+                      let data = new MapMetadataSettable(meshMetadata.metadata.name, location, notesList); // Class defined in index.js
+                      scope._setMeshMetadata({metadata: data}, false);
+        
+                      // Add marker at raycast point
+                      var mtlLoader = new Three.MTLLoader();
+                      mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
+                        materials.preload();
+                        var loader = new Three.OBJLoader();
+                        loader.setMaterials( materials )
+                        // This function is called on successful load
+                        function callbackOnLoad ( obj ) {
+                          obj.scale.set(0.01,0.01,0.01);
+                          obj.className = "noteMarker";
+                          obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} );
+                          obj.name = noteText;
+                          obj.userData = noteInfo;
+                          obj.position.set(point.x, point.y, point.z);
+                          markers.push(obj); // Adds to markers array defined in index.js
+                          var text = document.createElement( 'div' );
+                          text.className = 'labelText';
+                          text.textContent = noteText;
+                          text.style.zIndex = '-9999';
+                          var label = new Three.CSS2DObject( text );
+                          label.name = "Label: " + noteText;
+                          obj.add( label );
+                          scene.add( obj );
+                        }
+                        loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
+                      });
+                     
+                    }
+                  });
                 }
-                loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
-              });   
-             
+                else if (value === 'roomMarker') {
+                  resolve();
+                  // Modal to enter note text
+                  Swal.fire({
+                    title: 'Mark a room!',
+                    text: 'Enter room name:',
+                    input: 'text',
+                    showCancelButton: true,
+                    cancelButtonText: "Cancel",
+                    confirmButtonText: "Save room info",
+                    allowOutsideClick: false,
+                    inputValidator: (roomName) => {
+                      if(!roomName){
+                          return 'You need to enter text!';       
+                      }
+                      if( roomName.length > 100 ){
+                          return 'You have exceeded 100 characters';
+                      }
+                    },
+                    preConfirm: function(roomName) {
+                      var roomInfo = new RoomInfo(point.x, point.y, point.z, roomName); // Class defined in index.js
+                      const location = new MapLocation(0,0,0); // Class defined in index.js
+
+                      scope.RoomsArray.push(roomInfo);
+                      let roomsList = {roomsList: scope.RoomsArray, notesList: scope.NotesArray};
+                      let data = new MapMetadataSettable(meshMetadata.metadata.name, location, roomsList); // Class defined in index.js
+                      scope._setMeshMetadata({metadata: data}, false);
+
+                      var geometry = new Three.RingGeometry( 0.02, 0.08, 32 );
+                      geometry.rotateX(Math.PI/2);
+                      var material = new Three.MeshBasicMaterial( { color: 0x00FF7F, side: Three.DoubleSide } );
+                      var obj = new Three.Mesh( geometry, material );
+                      obj.position.set(point.x, point.y + 0.1, point.z);
+                      obj.className = "roomMarker";
+                      obj.name = roomName;
+                      var text = document.createElement( 'div' );
+                      text.className = 'labelText';
+                      text.textContent = roomName;
+                      text.style.zIndex = '-9999';
+                      var label = new Three.CSS2DObject( text );
+                      label.name = "Label: " + roomName;
+                      obj.add( label );
+                      scene.add( obj );
+                    }
+                  });
+                }
+              })
             }
-          });
+          })
+
+        /*   */
         }
         // Take first intersection with mesh
         if (scope.logging) console.log('Raycast to mesh is true');

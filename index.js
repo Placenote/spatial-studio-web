@@ -304,6 +304,11 @@ function onToggleCameraButtonClick() {
 
   var middle = placenoteMesh._setCameraOrbitOnCenter();
   if (isCameraTopDown == false) {
+    // Remove note labels and objects
+    if (isLabelVisible === true) {
+      onToggleLabelViewButtonClick();
+    }
+
     // Set camera and orbitControl values
     isCameraTopDown = true;
     camera.position.set(middle.x,10,middle.z);
@@ -312,6 +317,9 @@ function onToggleCameraButtonClick() {
     controls.enablePan = true;
   }
   else {
+    if (isLabelVisible === false) {
+      onToggleLabelViewButtonClick();
+    }
     // Set camera and orbitControl values
     isCameraTopDown = false;
     camera.position.set(0,10,15);
@@ -482,6 +490,15 @@ class NoteInfo {
     this.py = py;
     this.pz = pz;
     this.noteText = noteText;
+  }
+}
+
+class RoomInfo {
+  constructor(px, py, pz, roomName) {
+    this.px = px;
+    this.py = py;
+    this.pz = pz;
+    this.roomName = roomName;
   }
 }
 

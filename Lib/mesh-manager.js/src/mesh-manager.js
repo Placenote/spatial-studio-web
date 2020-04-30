@@ -50,6 +50,7 @@ var PlacenoteMesh = (function () {
       const jsonRes = JSON.parse(Http.response);
       this.meshMetadata = jsonRes;
       if (!jsonRes.metadata.userdata) { return; }
+      // Loops through NotesArray to populate scene
       if (jsonRes.metadata.userdata.notesList) { 
         this.NotesArray = jsonRes.metadata.userdata.notesList;
         this.NotesArray.forEach((noteObj) => {
@@ -62,13 +63,13 @@ var PlacenoteMesh = (function () {
             // This function is called on successful load
             function callbackOnLoad ( obj ) {
               // This will prevent duplicate scene children
-              if (scene.getObjectByName(noteObj.noteText)) {
+              if (scene.getObjectByName(noteObj.noteText + " " + noteObj.id)) {
                 return;
               }
               obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} ); // Sets object material to blue (temporary solution to Pin.mtl issue)
               obj.scale.set(0.01,0.01,0.01); // Scales the object size down to fit the mesh
               obj.className = "noteMarker";
-              obj.name = noteObj.noteText;
+              obj.name = noteObj.noteText + " " + noteObj.id; // Adds unique id stored in metadata to object name to easily deal with deletion and editing
               obj.userData = noteObj;
               obj.position.set(noteObj.px,noteObj.py,noteObj.pz);
               markers.push(obj);  // Adds to markers array defined in index.js
@@ -77,7 +78,6 @@ var PlacenoteMesh = (function () {
               text.className = 'labelText';
               text.textContent = noteObj.noteText;
               var label = new Three.CSS2DObject( text );
-              label.name = "Label: " + noteObj.noteText;
               obj.add( label );
               scene.add( obj );
             }
@@ -85,24 +85,25 @@ var PlacenoteMesh = (function () {
           });  
         });
       }
+      // Loops through RoomsArray to populate scene
       if (jsonRes.metadata.userdata.roomsList) {
         this.RoomsArray = jsonRes.metadata.userdata.roomsList;
         this.RoomsArray.forEach((roomObj) => {
           // This will prevent duplicate scene children
-          if (scene.getObjectByName(roomObj.roomName)) { return; }
+          if (scene.getObjectByName(roomObj.roomName + " " + roomObj.id)) { return; }
 
+          // Add room marker and room label to scene
           var geometry = new Three.RingGeometry( 0.02, 0.08, 32 );
           geometry.rotateX(Math.PI/2);
           var material = new Three.MeshBasicMaterial( { color: 0x00FF7F, side: Three.DoubleSide } );
           var obj = new Three.Mesh( geometry, material );
           obj.position.set(roomObj.px, roomObj.py + 0.1, roomObj.pz);
           obj.className = "roomMarker";
-          obj.name = roomObj.roomName;
+          obj.name = roomObj.roomName + " " + roomObj.id; // Adds unique id stored in metadata to object name to easily deal with deletion and editing
           var text = document.createElement( 'div' );
           text.className = 'labelText';
           text.textContent = roomObj.roomName;
           var label = new Three.CSS2DObject( text );
-          label.name = "Label: " + roomObj.roomName;
           obj.add( label );
           scene.add( obj );
         });
@@ -360,8 +361,8 @@ xhr.send();
             if (noteText.dismiss == "cancel") {
               // Modifies notes list by removing the note being deleted from the array
               scope.NotesArray.forEach((note) => {
-                // Compares note text and position values, which prevents deletion errors when multiple notes have the same note text
-                if (note.noteText == noteObj.parent.userData.noteText && note.px == noteObj.parent.position.x && note.py == noteObj.parent.position.y && note.pz == noteObj.parent.position.z) {
+                // Compares note id values, which prevents deletion errors when multiple notes have the same note text
+                if (note.id == noteObj.parent.userData.id) {
                   let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
                   meshMetadata.metadata.userdata.notesList.splice(index, 1);
                   meshMetadata.metadata.userdata.notesList = scope.NotesArray;
@@ -376,7 +377,8 @@ xhr.send();
             // Logic for saving edited note information
             else {
               scope.NotesArray.forEach((note) => {
-                if (note.noteText == noteObj.parent.userData.noteText) {
+                // Compares ID values stored in metadata, which helps with dealing with multiple notes with same text
+                if (note.id == noteObj.parent.userData.id) {
                   note.noteText = noteText.value;
                   noteObj.parent.userData.noteText = noteText.value;
                   noteObj.parent.name = noteText.value;
@@ -395,7 +397,6 @@ xhr.send();
               text.textContent = noteText.value;
 
               var label = new Three.CSS2DObject( text );
-              label.name = "Label: " + noteText.value;
               noteObj.parent.add( label );
             }
           });
@@ -441,13 +442,7 @@ xhr.send();
                       }
                     },
                     preConfirm: function(noteText) {
-                      var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText); // Class defined in index.js
-                      const location = new MapLocation(0,0,0); // Class defined in index.js
-        
-                      scope.NotesArray.push(noteInfo);
-                      let notesList = {notesList: scope.NotesArray, roomsList: scope.RoomsArray};
-                      let data = new MapMetadataSettable(meshMetadata.metadata.name, location, notesList); // Class defined in index.js
-                      scope._setMeshMetadata({metadata: data}, false);
+                      
         
                       // Add marker at raycast point
                       var mtlLoader = new Three.MTLLoader();
@@ -457,10 +452,17 @@ xhr.send();
                         loader.setMaterials( materials )
                         // This function is called on successful load
                         function callbackOnLoad ( obj ) {
+                          var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText, obj.id); // Class defined in index.js
+                          const location = new MapLocation(0,0,0); // Class defined in index.js
+                          scope.NotesArray.push(noteInfo);
+                          let notesList = {notesList: scope.NotesArray, roomsList: scope.RoomsArray};
+                          let data = new MapMetadataSettable(meshMetadata.metadata.name, location, notesList); // Class defined in index.js
+                          scope._setMeshMetadata({metadata: data}, false);
+
                           obj.scale.set(0.01,0.01,0.01);
                           obj.className = "noteMarker";
                           obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} );
-                          obj.name = noteText;
+                          obj.name = noteText + " " + obj.id; // Adds unique id stored in metadata to object name to easily deal with deletion and editing
                           obj.userData = noteInfo;
                           obj.position.set(point.x, point.y, point.z);
                           markers.push(obj); // Adds to markers array defined in index.js
@@ -468,7 +470,6 @@ xhr.send();
                           text.className = 'labelText';
                           text.textContent = noteText;
                           var label = new Three.CSS2DObject( text );
-                          label.name = "Label: " + noteText;
                           obj.add( label );
                           scene.add( obj );
                         }
@@ -498,13 +499,6 @@ xhr.send();
                       }
                     },
                     preConfirm: function(roomName) {
-                      var roomInfo = new RoomInfo(point.x, point.y, point.z, roomName); // Class defined in index.js
-                      const location = new MapLocation(0,0,0); // Class defined in index.js
-
-                      scope.RoomsArray.push(roomInfo);
-                      let roomsList = {roomsList: scope.RoomsArray, notesList: scope.NotesArray};
-                      let data = new MapMetadataSettable(meshMetadata.metadata.name, location, roomsList); // Class defined in index.js
-                      scope._setMeshMetadata({metadata: data}, false);
 
                       var geometry = new Three.RingGeometry( 0.02, 0.08, 32 );
                       geometry.rotateX(Math.PI/2);
@@ -512,14 +506,21 @@ xhr.send();
                       var obj = new Three.Mesh( geometry, material );
                       obj.position.set(point.x, point.y + 0.1, point.z);
                       obj.className = "roomMarker";
-                      obj.name = roomName;
+                      obj.name = roomName + " " + obj.id; // Adds unique id stored in metadata to object name to easily deal with deletion and editing
                       var text = document.createElement( 'div' );
                       text.className = 'labelText';
                       text.textContent = roomName;
                       var label = new Three.CSS2DObject( text );
-                      label.name = "Label: " + roomName;
                       obj.add( label );
                       scene.add( obj );
+
+                      var roomInfo = new RoomInfo(point.x, point.y, point.z, roomName, obj.id); // Class defined in index.js
+                      const location = new MapLocation(0,0,0); // Class defined in index.js
+
+                      scope.RoomsArray.push(roomInfo);
+                      let roomsList = {roomsList: scope.RoomsArray, notesList: scope.NotesArray};
+                      let data = new MapMetadataSettable(meshMetadata.metadata.name, location, roomsList); // Class defined in index.js
+                      scope._setMeshMetadata({metadata: data}, false);
                     }
                   });
                 }

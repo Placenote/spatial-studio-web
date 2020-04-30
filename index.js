@@ -353,10 +353,8 @@ function onToggleLabelViewButtonClick() {
       if (child.className == 'noteMarker') {
         var text = document.createElement( 'div' );
         text.className = 'labelText';
-        text.textContent = child.name;
-        text.style.zIndex = '-9999';
+        text.textContent = child.userData.noteText;
         var label = new Three.CSS2DObject( text );
-        label.name = "Label: " + child.name;
         child.add( label );
       }
     });
@@ -501,20 +499,22 @@ class MapLocation {
 }
 
 class NoteInfo {
-  constructor(px, py, pz, noteText) {
+  constructor(px, py, pz, noteText, id) {
     this.px = px;
     this.py = py;
     this.pz = pz;
     this.noteText = noteText;
+    this.id = id;
   }
 }
 
 class RoomInfo {
-  constructor(px, py, pz, roomName) {
+  constructor(px, py, pz, roomName, id) {
     this.px = px;
     this.py = py;
     this.pz = pz;
     this.roomName = roomName;
+    this.id = id;
   }
 }
 

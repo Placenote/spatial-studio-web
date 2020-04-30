@@ -59,7 +59,8 @@
   .section {
     margin-left: 50px;
   }
-  .label {
+  .inputlabel {
+    float: left;
     padding-bottom: 10px;
   }
 
@@ -72,7 +73,7 @@
     padding: 12px;
     margin-right: 10px;
     margin-top: 5px;
-    z-index: 3;
+    z-index: 1000;
   }
   
   button:hover {
@@ -88,7 +89,7 @@
     padding: 10px 0;
     background-color: #0095F2; 
     position: relative;
-    z-index: 2;
+    z-index: 500;
   }
 
   .header h1{
@@ -98,6 +99,13 @@
     text-align: left;
     font-family: "Helvetica Neue", Helvetica, sans-serif;
     font-weight: 400;
+  }
+  .header i{
+    font-size:30px;
+    color:white;
+    float:right;
+    padding: 15px;
+    cursor: pointer;
   }
   
   .container{
@@ -123,6 +131,7 @@
     float: left;
     width: 75%;
     min-height: 170px;
+    position: relative;
   }
   
   .content h2{
@@ -159,7 +168,7 @@
   .modal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
+    z-index: 1000; /* Sit on top */
     padding-top: 200px;
     margin:auto;
     left: 0;
@@ -174,7 +183,7 @@
   .linkmodal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
+    z-index: 1000; /* Sit on top */
     padding-top: 200px;
     margin:auto;
     left: 0;
@@ -207,6 +216,15 @@
   border: 1px solid #888;
   width: 50%;
 
+}
+
+.settings-modal-content {
+  background-color: #fefefe;
+  border-radius: 10px;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 50%;
 }
 
 .loader {

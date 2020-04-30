@@ -76,7 +76,6 @@ var PlacenoteMesh = (function () {
               var text = document.createElement( 'div' );
               text.className = 'labelText';
               text.textContent = noteObj.noteText;
-              text.style.zIndex = '-9999';
               var label = new Three.CSS2DObject( text );
               label.name = "Label: " + noteObj.noteText;
               obj.add( label );
@@ -102,7 +101,6 @@ var PlacenoteMesh = (function () {
           var text = document.createElement( 'div' );
           text.className = 'labelText';
           text.textContent = roomObj.roomName;
-          text.style.zIndex = '-9999';
           var label = new Three.CSS2DObject( text );
           label.name = "Label: " + roomObj.roomName;
           obj.add( label );
@@ -395,7 +393,6 @@ xhr.send();
               var text = document.createElement( 'div' );
               text.className = 'labelText';
               text.textContent = noteText.value;
-              text.style.zIndex = '-9999';
 
               var label = new Three.CSS2DObject( text );
               label.name = "Label: " + noteText.value;
@@ -448,7 +445,7 @@ xhr.send();
                       const location = new MapLocation(0,0,0); // Class defined in index.js
         
                       scope.NotesArray.push(noteInfo);
-                      let notesList = {notesList: scope.NotesArray};
+                      let notesList = {notesList: scope.NotesArray, roomsList: scope.RoomsArray};
                       let data = new MapMetadataSettable(meshMetadata.metadata.name, location, notesList); // Class defined in index.js
                       scope._setMeshMetadata({metadata: data}, false);
         
@@ -470,7 +467,6 @@ xhr.send();
                           var text = document.createElement( 'div' );
                           text.className = 'labelText';
                           text.textContent = noteText;
-                          text.style.zIndex = '-9999';
                           var label = new Three.CSS2DObject( text );
                           label.name = "Label: " + noteText;
                           obj.add( label );
@@ -520,7 +516,6 @@ xhr.send();
                       var text = document.createElement( 'div' );
                       text.className = 'labelText';
                       text.textContent = roomName;
-                      text.style.zIndex = '-9999';
                       var label = new Three.CSS2DObject( text );
                       label.name = "Label: " + roomName;
                       obj.add( label );

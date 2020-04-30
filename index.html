@@ -13,23 +13,16 @@
                 <div style="width: 25%; float: left;">
                     <img src="logo.png" width="50" style="padding-left: 10px;" />
                 </div>
-                <div style="width:75%;float:left;">
+                <div style="width:65%;float:left;">
                     <h1>Placenote Mesh Explorer</h1>
                 </div>
-            </div>
+                <i class="fa fa-share-alt-square"  onclick="onShareLinkButtonClick()"></i>
+                <i class="fa fa-cog"  onclick="onSettingsButtonClick()"></i>
+            </div>    
         </div>
         <div class="wrapper clearfix" id="screencontainer">
           <div class="nav">
-            <div class="input">
-              <div class="label">Your API Key</div>
-              <input type="text" name="apikey" id="apikey" >
-            </div>
-            <div class="input">
-              <div class="label">Your Map ID</div>
-              <input type="text" name="mapid" id="mapid" >
-            </div>
-            <button id="startMeshManager" onclick="onClickStartMeshManagerBtn()">View Mesh </button>
-            <button id="startMeshManager" onclick="onClickDownloadMeshToFolderButton()"> Download Mesh </button>
+           
             <div class="spacer" id="spacer"></div>
             <div class='imagepanel'>
               <div class='gridcontainer' id="gridcontainer" style="display:none;" >
@@ -44,13 +37,12 @@
           <div class="content" id="threejscontainer">
             <button style="padding-left:65px; background:none; border:none;" title="Top-Down View" class="ui" id="toggleCameraViewButton" onclick="onToggleCameraButtonClick()"><i class="fa fa-eye-slash" id="toggleViewIcon" style="font-size:25px;color:white"></i></button>
             <button style="background:none; border:none;" title="Toggle Label View" class="ui" id="toggleLabelViewButton" onclick="onToggleLabelViewButtonClick()"><i class="fa fa-toggle-on" id="toggleLabelIcon" style="font-size:25px;color:white"></i></button>
-                <div class="content" id="threeViewer">
-                  <button style="right:20px; top:100px; background:none; border:none;" class="ui"  title="Previous Note" id="nextNoteButton"onclick="onNextNoteButtonClick()" ><i class="fa fa-arrow-circle-right" style="font-size:25px;color:white"></i></button>
-                  <button style="right:60px; top:100px; background:none; border:none;" class="ui" title="Recalibrate" id="calibrateButton"onclick="onCalibrateButtonClick()"><i class="fa fa-street-view" style="font-size:25px;color:white"></i></button>
-                  <button style="right:100px; top:100px; background:none; border:none;" class="ui" title="Next Note" id="prevNoteButton"onclick="onPrevNoteButtonClick()"><i class="fa fa-arrow-circle-left" style="font-size:25px;color:white"></i></button>
-                  <button style="right:20px; top:15px; background:none; border:none;" class="ui" id="shareLinkButton" onclick="onShareLinkButtonClick()"><i class="fa fa-share-alt-square" style="font-size:30px;color:white"></i></button>
-                  <button style="right:22px; top:175px; background:none; border:none;" class="ui" title="View All Notes" id="notesListModal" onclick="onNotesViewButtonClick()"><i class="fa fa-book" style="font-size:25px;color:white"></i></button>
-                </div>
+            <button style="right:0px; top:5px; background:none; border:none;" class="ui"  title="Previous Note" id="nextNoteButton"onclick="onNextNoteButtonClick()" ><i class="fa fa-arrow-circle-right" style="font-size:25px;color:white"></i></button>
+            <button style="right:50px; top:5px; background:none; border:none;" class="ui" title="Recalibrate" id="calibrateButton"onclick="onCalibrateButtonClick()"><i class="fa fa-street-view" style="font-size:25px;color:white"></i></button>
+            <button style="right:100px; top:5px; background:none; border:none;" class="ui" title="Next Note" id="prevNoteButton"onclick="onPrevNoteButtonClick()"><i class="fa fa-arrow-circle-left" style="font-size:25px;color:white"></i></button>
+            <button style="right:0px; top:60px; background:none; border:none;" class="ui" title="View All Notes" id="notesListModal" onclick="onNotesViewButtonClick()"><i class="fa fa-book" style="font-size:25px;color:white"></i></button>
+            <div class="content" id="threeViewer">
+            </div>
           </div>
         </div>
         <div class="footer">
@@ -86,7 +78,22 @@
 
   </div>
 
-
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="settings-modal-content">
+      <span class="close" onclick="closeSettingsModal()">&times;</span>
+      <div class="input">
+        <div class="inputlabel">Your API Key</div>
+        <input type="text" name="apikey" id="apikey" >
+      </div>
+      <div class="input">
+        <div class="inputlabel">Your Map ID</div>
+        <input type="text" name="mapid" id="mapid" >
+      </div>
+      <button id="startMeshManager" onclick="onClickStartMeshManagerBtn()">View Mesh </button>
+      <button id="startMeshManager" onclick="onClickDownloadMeshToFolderButton()"> Download Mesh </button>
+    </div>
+  </div>
 
   </body>
   <script>
@@ -106,3 +113,5 @@
   <script src="index.js"></script>
   <script src="node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
 </html>
+
+

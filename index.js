@@ -117,6 +117,7 @@ var getOverviewImages = function() { // Get overview img data
 function onClickStartMeshManagerBtn() {
   //getOverviewImages();
   //placenoteMesh.setDecimationLevels([1,5]);
+  settingsModal.style.display="none";
 
   if (loadedMeshApiKey == document.getElementById('apikey').value && loadedMeshMapId == document.getElementById('mapid').value)
   {
@@ -296,6 +297,7 @@ var labelIndex = -1;
 
 // END Three js viewer init
 
+// Toggle camera button onclick function
 function onToggleCameraButtonClick() {
   // Toggle between on and off icons
   icon = document.getElementById('toggleViewIcon');
@@ -328,6 +330,8 @@ function onToggleCameraButtonClick() {
   }
   controls.update();
 }
+
+// Toggle label view button onclick function
 function onToggleLabelViewButtonClick() {
   // Toggle between on and off icons
   icon = document.getElementById('toggleLabelIcon');
@@ -348,7 +352,7 @@ function onToggleLabelViewButtonClick() {
     scene.children.forEach((child) => {
       if (child.className == 'noteMarker') {
         var text = document.createElement( 'div' );
-        text.className = 'noteText';
+        text.className = 'labelText';
         text.textContent = child.name;
         text.style.zIndex = '-9999';
         var label = new Three.CSS2DObject( text );
@@ -361,6 +365,7 @@ function onToggleLabelViewButtonClick() {
 }
 
 var linkModal = document.getElementById("linkmodal");
+var settingsModal = document.getElementById("settingsModal");
 var span = document.getElementsByClassName("close")[0];
 
 
@@ -377,6 +382,13 @@ window.onclick = function(event) {
   }
 }
 
+function onSettingsButtonClick() {
+  settingsModal.style.display="block";
+}
+
+function closeSettingsModal() {
+  settingsModal.style.display="none";
+}
 
 function onShareLinkButtonClick()
 {
@@ -400,6 +412,7 @@ function onShareLinkButtonClick()
   }
 }
 
+// Next note button onclick function
 function onNextNoteButtonClick() {
   ++labelIndex; // increments index
   if (labelIndex == placenoteMesh.NotesArray.length) {
@@ -414,6 +427,7 @@ function onNextNoteButtonClick() {
   controls.update();
 }
 
+// Previous note button onclick function
 function onPrevNoteButtonClick() {
   if (labelIndex <= 0) {
     labelIndex = placenoteMesh.NotesArray.length - 1;  // If previous button is clicked first, go to last entry
@@ -430,11 +444,13 @@ function onPrevNoteButtonClick() {
   controls.update();
 }
 
+// Calibrate button onclick function
 function onCalibrateButtonClick() {
   placenoteMesh._setCameraOrbitOnCenter();
   labelIndex = -1;
 }
 
+// View all notes button onclick function
 function onNotesViewButtonClick() {
   var noteOptions = {};
   var noteIndex = 0;
@@ -547,4 +563,3 @@ var animate = function() {
   labelRenderer.render( scene, camera );
 }
 animate();
-

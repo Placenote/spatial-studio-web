@@ -313,7 +313,7 @@ function onToggleCameraButtonClick() {
 
     // Set camera and orbitControl values
     isCameraTopDown = true;
-    camera.position.set(middle.x,10,middle.z);
+    camera.position.set(middle.x,15,middle.z);
     placenoteMesh._setCameraOrbitOnCenter();
     controls.enableRotate = false;
     controls.enablePan = true;
@@ -410,12 +410,27 @@ function onShareLinkButtonClick()
   }
 }
 
-// Next note button onclick function
-function onNextNoteButtonClick() {
-  ++labelIndex; // increments index
-  if (labelIndex == placenoteMesh.NotesArray.length) {
-    labelIndex = 0; // If the end of array is reached, reset to first array entry
-  }
+// Moving camera to a specific room
+function moveCameraToRoom(roomObj) {
+  // Update the target for OrbitControls and moves camera closer to note
+  var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
+  var roomVector = new Three.Vector3(roomObj.px,roomObj.py,roomObj.pz);
+  controls.target.set(roomVector.x,roomVector.y,roomVector.z); // Sets camera to orbit around note
+  var distance = cameraVector.distanceTo(roomVector) - 2.5;
+  camera.translateZ(-distance);
+  controls.update();
+
+  // Update panel with room name, image and description
+  document.getElementById("navbarheader").innerHTML = roomObj.roomName; // Add mesh name to nav bar
+  document.getElementById('navimage').src = roomObj.imageUrl;
+  document.getElementById('navimage').style.display = "block";
+  document.getElementById('navimagedescription').innerHTML = roomObj.roomDescription;
+  document.getElementById('navimagedescription').style.display = "block";
+
+}
+
+// Moving camera to a specific note
+function moveCameraToNote(labelIndex) {
   // Update the target for OrbitControls and moves camera closer to note
   var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
   var noteVector = new Three.Vector3(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
@@ -423,6 +438,15 @@ function onNextNoteButtonClick() {
   var distance = cameraVector.distanceTo(noteVector) - 2.5;
   camera.translateZ(-distance);
   controls.update();
+}
+
+// Next note button onclick function
+function onNextNoteButtonClick() {
+  ++labelIndex; // increments index
+  if (labelIndex == placenoteMesh.NotesArray.length) {
+    labelIndex = 0; // If the end of array is reached, reset to first array entry
+  }
+  moveCameraToNote(labelIndex);
 }
 
 // Previous note button onclick function
@@ -433,13 +457,7 @@ function onPrevNoteButtonClick() {
   else {
     --labelIndex; // decrements index
   }
-  // Update the target for OrbitControls and moves camera closer to note
-  var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
-  var noteVector = new Three.Vector3(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
-  controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
-  var distance = cameraVector.distanceTo(noteVector) - 2.5;
-  camera.translateZ(-distance);
-  controls.update();
+  moveCameraToNote(labelIndex);
 }
 
 // Calibrate button onclick function
@@ -452,6 +470,7 @@ function onCalibrateButtonClick() {
 function onNotesViewButtonClick() {
   var noteOptions = {};
   var noteIndex = 0;
+  // Loop through array to retrieve all notes for display in modal
   placenoteMesh.NotesArray.forEach(function(noteObj) {
     noteOptions[noteIndex] = noteObj.noteText;
     ++noteIndex;
@@ -469,13 +488,7 @@ function onNotesViewButtonClick() {
         return new Promise((resolve) => {
           if (value === "") { resolve(); } // If no note is selected but OK is still pressed
           labelIndex = value;
-          // Update the target for OrbitControls and moves camera closer to note
-          var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
-          var noteVector = new Three.Vector3(placenoteMesh.NotesArray[value].px,placenoteMesh.NotesArray[value].py,placenoteMesh.NotesArray[value].pz);
-          controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
-          var distance = cameraVector.distanceTo(noteVector) - 2.5;
-          camera.translateZ(-distance);
-          controls.update();
+          moveCameraToNote(labelIndex);
           resolve();
         })
       }
@@ -509,12 +522,14 @@ class NoteInfo {
 }
 
 class RoomInfo {
-  constructor(px, py, pz, roomName, id) {
+  constructor(px, py, pz, roomName, id, imageUrl, roomDescription) {
     this.px = px;
     this.py = py;
     this.pz = pz;
     this.roomName = roomName;
     this.id = id;
+    this.imageUrl = imageUrl;
+    this.roomDescription = roomDescription;
   }
 }
 

@@ -49,6 +49,7 @@ var PlacenoteMesh = (function () {
       Http.onreadystatechange = (e) => {
       const jsonRes = JSON.parse(Http.response);
       this.meshMetadata = jsonRes;
+      document.getElementById("navbarheader").innerHTML = jsonRes.metadata.name; // Add mesh name to nav bar
       if (!jsonRes.metadata.userdata) { return; }
       // Loops through NotesArray to populate scene
       if (jsonRes.metadata.userdata.notesList) { 
@@ -106,6 +107,20 @@ var PlacenoteMesh = (function () {
           var label = new Three.CSS2DObject( text );
           obj.add( label );
           scene.add( obj );
+          
+          // Update footer with room images 
+          var column = document.createElement('div');
+          column.className = "imagecolumn";
+          var img = document.createElement('input');
+          img.type = "image";
+          img.className = "footerimage";
+          img.onclick = function () {
+            moveCameraToRoom(roomObj);
+          }
+          img.name = roomObj.roomName;
+          img.src = roomObj.imageUrl;
+          column.appendChild(img);
+          document.getElementById("imagerow").appendChild(column);
         });
       }
       return this.meshMetadata;
@@ -442,8 +457,6 @@ xhr.send();
                       }
                     },
                     preConfirm: function(noteText) {
-                      
-        
                       // Add marker at raycast point
                       var mtlLoader = new Three.MTLLoader();
                       mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
@@ -482,50 +495,91 @@ xhr.send();
                 else if (value === 'roomMarker') {
                   resolve();
                   // Modal to enter note text
-                  Swal.fire({
-                    title: 'Mark a room!',
-                    text: 'Enter room name:',
+                  Swal.mixin({
                     input: 'text',
                     showCancelButton: true,
                     cancelButtonText: "Cancel",
-                    confirmButtonText: "Save room info",
+                    confirmButtonText: "Next",
                     allowOutsideClick: false,
-                    inputValidator: (roomName) => {
-                      if(!roomName){
-                          return 'You need to enter text!';       
-                      }
-                      if( roomName.length > 100 ){
-                          return 'You have exceeded 100 characters';
-                      }
+                    progressSteps: ['1', '2', '3'],
+                  }).queue([
+                    {
+                      title: 'Mark a Room!',
+                      text: 'Enter a room name',
+                      inputValidator: (roomName) => {
+                        if(!roomName){
+                            return 'You need to enter text!';       
+                        }
+                        if( roomName.length > 50 ){
+                            return 'You have exceeded 50 characters';
+                        }
+                      },
                     },
-                    preConfirm: function(roomName) {
-
+                    {
+                      title: 'Add an image!',
+                      text: 'Enter a URL for the image'
+                    },
+                    {
+                      title: 'Add a description!',
+                      text: 'Enter a short description for the room',
+                      inputValidator: (roomDescription) => {
+                        if(!roomDescription){
+                            return 'You need to enter text!';       
+                        }
+                        if( roomDescription.length > 200 ){
+                            return 'You have exceeded 200 characters';
+                        }
+                      },
+                    },
+                  ]).then((roomInfoArray) => {
+                      roomInfoArray = roomInfoArray.value;
                       var geometry = new Three.RingGeometry( 0.02, 0.08, 32 );
                       geometry.rotateX(Math.PI/2);
                       var material = new Three.MeshBasicMaterial( { color: 0x00FF7F, side: Three.DoubleSide } );
                       var obj = new Three.Mesh( geometry, material );
                       obj.position.set(point.x, point.y + 0.1, point.z);
                       obj.className = "roomMarker";
-                      obj.name = roomName + " " + obj.id; // Adds unique id stored in metadata to object name to easily deal with deletion and editing
+                      obj.name = roomInfoArray[0] + " " + obj.id; // Adds unique id stored in metadata to object name to easily deal with deletion and editing
                       var text = document.createElement( 'div' );
                       text.className = 'labelText';
-                      text.textContent = roomName;
+                      text.textContent = roomInfoArray[0];
                       var label = new Three.CSS2DObject( text );
                       obj.add( label );
                       scene.add( obj );
 
-                      var roomInfo = new RoomInfo(point.x, point.y, point.z, roomName, obj.id); // Class defined in index.js
+                      // Update panel with room name, image and description
+                      document.getElementById("navbarheader").innerHTML = roomInfoArray[0]; // Add mesh name to nav bar
+                      document.getElementById('navimage').src = roomInfoArray[1];
+                      document.getElementById('navimage').style.display = "block";
+                      document.getElementById('navimagedescription').innerHTML = roomInfoArray[2];
+                      document.getElementById('navimagedescription').style.display = "block";
+
+                      // Set metdadata with new data
+                      var roomInfo = new RoomInfo(point.x, point.y, point.z, roomInfoArray[0], obj.id, roomInfoArray[1], roomInfoArray[2]); // Class defined in index.js
                       const location = new MapLocation(0,0,0); // Class defined in index.js
 
                       scope.RoomsArray.push(roomInfo);
                       let roomsList = {roomsList: scope.RoomsArray, notesList: scope.NotesArray};
                       let data = new MapMetadataSettable(meshMetadata.metadata.name, location, roomsList); // Class defined in index.js
                       scope._setMeshMetadata({metadata: data}, false);
-                    }
-                  });
-                }
-              })
-            }
+
+                      // Update footer with room images 
+                      var column = document.createElement('div');
+                      column.className = "imagecolumn";
+                      var img = document.createElement('input');
+                      img.type = "image";
+                      img.className = "footerimage";
+                      img.onclick = function () {
+                        moveCameraToRoom(roomInfo);
+                      }
+                      img.name = roomInfo.roomName;
+                      img.src = roomInfo.imageUrl;
+                      column.appendChild(img);
+                      document.getElementById("imagerow").appendChild(column);
+                    });
+                  };
+                });
+              }
           })
 
         /*   */

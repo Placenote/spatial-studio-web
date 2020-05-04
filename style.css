@@ -90,6 +90,7 @@
     background-color: #0095F2; 
     position: relative;
     z-index: 500;
+    height: 70px;
   }
 
   .header h1{
@@ -104,8 +105,8 @@
     font-size:30px;
     color:white;
     float:right;
-    padding: 15px;
     cursor: pointer;
+    padding: 10px 10px 0px;
   }
   
   .container{
@@ -117,10 +118,27 @@
   .nav{            
     float: left; 
     width: 25%; 
-    padding: 10px;
+    padding: 5px;
     box-sizing: border-box;
-    min-height: 170px;
+    min-height: 450px;
     background-color: #f0f0f0;
+  }
+  .nav h2{
+    font-size: 26px; 
+    text-align: left;
+    font-family: "Helvetica Neue", Helvetica, sans-serif;
+    font-weight: 400;
+  }
+
+  .nav img{
+    width: 250px;
+    height: 200px;
+    display: none;
+  }
+
+  .nav p{
+    font-size: 16px;
+    display: none;
   }
 
   .ui {
@@ -130,7 +148,7 @@
   .content{
     float: left;
     width: 75%;
-    min-height: 170px;
+    min-height: 450px;
     position: relative;
   }
   
@@ -153,6 +171,26 @@
   .footer p{
     text-align: center; 
     margin: 5px;
+  }
+
+  .footerimage{
+    width: 175px;
+    height: 125px;
+  }
+
+  .footerimage:hover{
+    border-color: #0095F2;
+    border-radius: 2px;
+  }
+
+  .imagerow {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 4px;
+  }
+  .imagecolumn {
+    float: left;
+    padding: 10px;
   }
 
   .labelText {

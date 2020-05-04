@@ -119,7 +119,10 @@ var PlacenoteMesh = (function () {
           }
           img.name = roomObj.roomName;
           img.src = roomObj.imageUrl;
+          var imgText = document.createElement('div');
+          imgText.innerHTML = roomObj.roomName;
           column.appendChild(img);
+          column.appendChild(imgText);
           document.getElementById("imagerow").appendChild(column);
         });
       }

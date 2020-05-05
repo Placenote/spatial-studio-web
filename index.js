@@ -412,14 +412,23 @@ function onShareLinkButtonClick()
 
 // Moving camera to a specific room
 function moveCameraToRoom(roomObj) {
-  // Update the target for OrbitControls and moves camera closer to note
-  var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
-  var roomVector = new Three.Vector3(roomObj.px,roomObj.py,roomObj.pz);
-  controls.target.set(roomVector.x,roomVector.y,roomVector.z); // Sets camera to orbit around note
-  var distance = cameraVector.distanceTo(roomVector) - 2.5;
-  camera.translateZ(-distance);
-  controls.update();
+  // Do not translate the camera towards the room marker if in top-down view
+  if (isCameraTopDown) {
+    controls.target.set(roomObj.px,roomObj.py,roomObj.pz); // Sets camera to orbit around note
+    controls.object.position.set(roomObj.px, roomObj.py + 10, roomObj.pz); // Sets camera to be directly above the marker
+    controls.update();
+  }
+  // Translate the camera towards the room marker if not in top-down view
+  else {
+    // Update the target for OrbitControls and moves camera closer to note
+    var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
+    var roomVector = new Three.Vector3(roomObj.px,roomObj.py,roomObj.pz);
+    controls.target.set(roomVector.x,roomVector.y,roomVector.z); // Sets camera to orbit around note
+    var distance = cameraVector.distanceTo(roomVector) - 2.5;
+    camera.translateZ(-distance);
+    controls.update();
 
+  }
   // Update panel with room name, image and description
   document.getElementById("navbarheader").innerHTML = roomObj.roomName; // Add mesh name to nav bar
   document.getElementById('navimage').src = roomObj.imageUrl;
@@ -431,13 +440,21 @@ function moveCameraToRoom(roomObj) {
 
 // Moving camera to a specific note
 function moveCameraToNote(labelIndex) {
-  // Update the target for OrbitControls and moves camera closer to note
-  var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
-  var noteVector = new Three.Vector3(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
-  controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
-  var distance = cameraVector.distanceTo(noteVector) - 2.5;
-  camera.translateZ(-distance);
-  controls.update();
+  if (isCameraTopDown) {
+    var noteVector = new Three.Vector3(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
+    controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
+    controls.object.position.set(noteVector.x, noteVector.y + 10, noteVector.z); // Sets camera to be directly above the marker
+
+  }
+  else {
+    // Update the target for OrbitControls and moves camera closer to note
+    var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
+    var noteVector = new Three.Vector3(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
+    controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
+    var distance = cameraVector.distanceTo(noteVector) - 2.5;
+    camera.translateZ(-distance);
+    controls.update();
+  }
 }
 
 // Next note button onclick function

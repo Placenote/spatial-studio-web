@@ -482,11 +482,14 @@ xhr.send();
                           obj.userData = noteInfo;
                           obj.position.set(point.x, point.y, point.z);
                           markers.push(obj); // Adds to markers array defined in index.js
-                          var text = document.createElement( 'div' );
-                          text.className = 'labelText';
-                          text.textContent = noteText;
-                          var label = new Three.CSS2DObject( text );
-                          obj.add( label );
+                          // If label toggle is on, add the label to the scene
+                          if (isLabelVisible) {
+                            var text = document.createElement( 'div' );
+                            text.className = 'labelText';
+                            text.textContent = noteText;
+                            var label = new Three.CSS2DObject( text );
+                            obj.add( label );
+                          }
                           scene.add( obj );
                         }
                         loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
@@ -577,6 +580,9 @@ xhr.send();
                       }
                       img.name = roomInfo.roomName;
                       img.src = roomInfo.imageUrl;
+                      var imgText = document.createElement('div');
+                      imgText.innerHTML = roomInfo.roomName;
+                      column.appendChild(imgText);
                       column.appendChild(img);
                       document.getElementById("imagerow").appendChild(column);
                     });

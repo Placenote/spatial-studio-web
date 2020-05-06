@@ -28,8 +28,169 @@ var PlacenoteMesh = (function () {
     this.readyForRaycast = true;
     this.lastRaycastPoint;
     this.logging = false;
+    this.meshMetadata = null;
+    this.NotesArray = [];
+    this.RoomsArray = [];
+    this.meshObj = null;
   }
-  
+  /**
+     * @desc HELPER METHOD: Retrieves mesh metadata. 
+     * Makes Http request to get metadata
+     */  
+    PlacenoteMesh.prototype._getMeshMetadata = function () {
+      const Http = new XMLHttpRequest();
+      const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
+      var apiKeyVal = document.getElementById('apikey').value;
+      var mapIdVal = document.getElementById('mapid').value;
+      Http.open("GET", url, true);
+      Http.setRequestHeader('APIKEY', apiKeyVal);
+      Http.setRequestHeader('placeid', mapIdVal);
+      Http.send();
+      Http.onreadystatechange = (e) => {
+      const jsonRes = JSON.parse(Http.response);
+      this.meshMetadata = jsonRes;
+      document.getElementById("navbarheader").innerHTML = jsonRes.metadata.name; // Add mesh name to nav bar
+      if (!jsonRes.metadata.userdata) { return; }
+      // Loops through NotesArray to populate scene
+      if (jsonRes.metadata.userdata.notesList) { 
+        this.NotesArray = jsonRes.metadata.userdata.notesList;
+        this.NotesArray.forEach((noteObj) => {
+          // Loads note markers and note labels into the scene
+          var mtlLoader = new Three.MTLLoader();
+          mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
+            materials.preload();
+            var loader = new Three.OBJLoader();
+            loader.setMaterials( materials )
+            // This function is called on successful load
+            function callbackOnLoad ( obj ) {
+              // This will prevent duplicate scene children
+              if (scene.getObjectByName(noteObj.noteText + " " + noteObj.id)) {
+                return;
+              }
+              obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} ); // Sets object material to blue (temporary solution to Pin.mtl issue)
+              obj.scale.set(0.01,0.01,0.01); // Scales the object size down to fit the mesh
+              obj.className = "noteMarker";
+              obj.name = noteObj.noteText + " " + noteObj.id; // Adds unique id stored in metadata to object name to easily deal with deletion and editing
+              obj.userData = noteObj;
+              obj.position.set(noteObj.px,noteObj.py,noteObj.pz);
+              markers.push(obj);  // Adds to markers array defined in index.js
+
+              var text = document.createElement( 'div' );
+              text.className = 'labelText';
+              text.textContent = noteObj.noteText;
+              var label = new Three.CSS2DObject( text );
+              obj.add( label );
+              scene.add( obj );
+            }
+            loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
+          });  
+        });
+      }
+      // Loops through RoomsArray to populate scene
+      if (jsonRes.metadata.userdata.roomsList) {
+        this.RoomsArray = jsonRes.metadata.userdata.roomsList;
+        this.RoomsArray.forEach((roomObj) => {
+          // This will prevent duplicate scene children
+          if (scene.getObjectByName(roomObj.roomName + " " + roomObj.id)) { return; }
+
+          // Add room marker and room label to scene
+          var geometry = new Three.RingGeometry( 0.02, 0.08, 32 );
+          geometry.rotateX(Math.PI/2);
+          var material = new Three.MeshBasicMaterial( { color: 0x00FF7F, side: Three.DoubleSide } );
+          var obj = new Three.Mesh( geometry, material );
+          obj.position.set(roomObj.px, roomObj.py + 0.1, roomObj.pz);
+          obj.className = "roomMarker";
+          obj.name = roomObj.roomName + " " + roomObj.id; // Adds unique id stored in metadata to object name to easily deal with deletion and editing
+          var text = document.createElement( 'div' );
+          text.className = 'labelText';
+          text.textContent = roomObj.roomName;
+          var label = new Three.CSS2DObject( text );
+          obj.add( label );
+          scene.add( obj );
+          
+          // Update footer with room images 
+          var column = document.createElement('div');
+          column.className = "imagecolumn";
+          var img = document.createElement('input');
+          img.type = "image";
+          img.className = "footerimage";
+          img.onclick = function () {
+            moveCameraToRoom(roomObj);
+          }
+          img.name = roomObj.roomName;
+          img.src = roomObj.imageUrl;
+          var imgText = document.createElement('div');
+          imgText.innerHTML = roomObj.roomName;
+          column.appendChild(img);
+          column.appendChild(imgText);
+          document.getElementById("imagerow").appendChild(column);
+        });
+      }
+      return this.meshMetadata;
+    }
+  };
+
+    /**
+    * @desc HELPER METHOD: Sets mesh metadata. 
+    * Makes Http request to set metadata
+    */
+   PlacenoteMesh.prototype._setMeshMetadata = function (data, deleteNote) {
+    const Http = new XMLHttpRequest();
+    const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/setMetadata';
+    var apiKeyVal = document.getElementById('apikey').value;
+    var mapIdVal = document.getElementById('mapid').value;
+    Http.open("POST", url, true);
+    Http.setRequestHeader('APIKEY', apiKeyVal);
+    Http.setRequestHeader('placeid', mapIdVal);
+
+    Http.send(JSON.stringify(data));
+    Swal.fire({
+      title: 'Saving Changes...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      allowEnterKey: false,
+      onOpen: () => {
+          Swal.showLoading();
+      }
+  })
+    Http.onreadystatechange = (e) => {
+      if (Http.readyState == 4 && Http.status == 200) {
+        this.meshMetadata = data;
+        if (deleteNote) {
+          Swal.fire({
+            icon: 'success',
+            text: 'Note has been deleted!',
+          });
+        }
+        else {
+          Swal.close();
+        }
+      }
+      if (Http.status == 400) {
+        Swal.fire({
+          icon: 'error',
+          text: "'Oops...', 'Something went wrong!', 'error'",
+        });
+      }
+    }
+   }
+   /**
+    * @desc HELPER METHOD: Calculates centre of mesh. 
+    * Sets control target/camera orbit on the center point.
+    */
+   PlacenoteMesh.prototype._setCameraOrbitOnCenter = function () {
+    var box = new Three.BoxHelper( this.meshObj, 0xffff00 ); 
+    var middle = new Three.Vector3();
+    var geometry = box.geometry;
+    geometry.computeBoundingBox();
+    middle.x = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
+    middle.y = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
+    middle.z = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
+    box.localToWorld( middle );
+    controls.target.set(middle.x,middle.y,middle.z); 
+    controls.update();
+    return middle;
+  }
   /**
   * @desc HELPER METHOD: initializes mesh for clickety click. 
   * Makes Http request to download dataset.json
@@ -184,11 +345,259 @@ xhr.send();
 
     const intersects = this.raycaster.intersectObjects( scene.children, true);
     const scope = this;
-    for ( var i = 0; i < intersects.length; i++ ) {
-      if (scope.readyForRaycast && intersects[i].object.name == 'PlacenoteMesh') { // Take first intersection with mesh
+    for (var i = 0; i < intersects.length; i++) {
+      // Checks if raycast hits either the mesh or an existing note marker
+      if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || intersects[i].object.parent.className == 'noteMarker')) {
+        var noteObj = intersects[i].object;
+        delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
+        let meshMetadata = this.meshMetadata;
+       
+        // Logic if raycast hits an existing object
+        if (intersects[i].object.parent.className == 'noteMarker') {
+          // Changes color of object when clicked on
+          intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFFFF00} ); 
+          // Modal to enter note text
+          Swal.fire({
+            title: 'Edit Note!',
+            text: 'Enter note text here:',
+            input: 'text',
+            showCancelButton: true,
+            cancelButtonText: "Delete note",
+            confirmButtonText: "Save note info",
+            inputValue: noteObj.parent.userData.noteText, // Edit existing note text for that object
+            allowOutsideClick: false,
+            inputValidator: (noteText) => {
+              if(!noteText){
+                  return 'You need to enter text!';       
+              }
+              if( noteText.length > 100 ){
+                  return 'You have exceeded 100 characters';
+              }
+            }
+          }).then(function(noteText) {
+            // Logic for delete button on edit popup
+            if (noteText.dismiss == "cancel") {
+              // Modifies notes list by removing the note being deleted from the array
+              scope.NotesArray.forEach((note) => {
+                // Compares note id values, which prevents deletion errors when multiple notes have the same note text
+                if (note.id == noteObj.parent.userData.id) {
+                  let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
+                  meshMetadata.metadata.userdata.notesList.splice(index, 1);
+                  meshMetadata.metadata.userdata.notesList = scope.NotesArray;
+                  scope._setMeshMetadata(meshMetadata, true);
+                }
+              })
+              // Removes note cube and note label from the scene 
+              noteObj.parent.remove(noteObj.parent.children[1]);
+              scene.remove(scene.getObjectById(noteObj.parent.id));
+            }
+
+            // Logic for saving edited note information
+            else {
+              scope.NotesArray.forEach((note) => {
+                // Compares ID values stored in metadata, which helps with dealing with multiple notes with same text
+                if (note.id == noteObj.parent.userData.id) {
+                  note.noteText = noteText.value;
+                  noteObj.parent.userData.noteText = noteText.value;
+                  noteObj.parent.name = noteText.value;
+                }
+              })
+              // Update local array and call setMetadata endpoint
+              meshMetadata.metadata.userdata.notesList = scope.NotesArray;
+              scope._setMeshMetadata(meshMetadata, false);
+
+              // Remove label for the note
+              noteObj.parent.remove(noteObj.parent.children[1]);
+
+              // Create and add new label for note
+              var text = document.createElement( 'div' );
+              text.className = 'labelText';
+              text.textContent = noteText.value;
+
+              var label = new Three.CSS2DObject( text );
+              noteObj.parent.add( label );
+            }
+          });
+        }
+        // Logic if raycast hits the mesh
+        if (intersects[i].object.name == 'PlacenoteMesh') {
+          // Update the target for OrbitControls and move camera closer to point
+          var point = intersects[i].point;
+          var vector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
+          controls.target.set(point.x,point.y,point.z);
+          var distance = vector.distanceTo(point) - 2.5;
+          camera.translateZ(-distance);
+
+          Swal.fire({
+            title: 'Select a marker!',
+            input: 'select',
+            inputOptions: {
+              noteMarker: 'Notes',
+              roomMarker: 'Rooms'
+            },
+            inputPlaceholder: 'Choose one...',
+            showCancelButton: true,
+            inputValidator: (value) => {
+              return new Promise((resolve) => {
+                if (value === '') { resolve(); } 
+                else if ( value === 'noteMarker') {
+                  resolve();
+                  // Modal to enter note text
+                  Swal.fire({
+                    title: 'Create a Note!',
+                    text: 'Enter note text here:',
+                    input: 'text',
+                    showCancelButton: true,
+                    cancelButtonText: "Cancel",
+                    confirmButtonText: "Save note info",
+                    allowOutsideClick: false,
+                    inputValidator: (noteText) => {
+                      if(!noteText){
+                          return 'You need to enter text!';
+                      }
+                      if( noteText.length > 100 ){
+                          return 'You have exceeded 100 characters';
+                      }
+                    },
+                    preConfirm: function(noteText) {
+                      // Add marker at raycast point
+                      var mtlLoader = new Three.MTLLoader();
+                      mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
+                        materials.preload();
+                        var loader = new Three.OBJLoader();
+                        loader.setMaterials( materials )
+                        // This function is called on successful load
+                        function callbackOnLoad ( obj ) {
+                          var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText, obj.id); // Class defined in index.js
+                          const location = new MapLocation(0,0,0); // Class defined in index.js
+                          scope.NotesArray.push(noteInfo);
+                          let notesList = {notesList: scope.NotesArray, roomsList: scope.RoomsArray};
+                          let data = new MapMetadataSettable(meshMetadata.metadata.name, location, notesList); // Class defined in index.js
+                          scope._setMeshMetadata({metadata: data}, false);
+
+                          obj.scale.set(0.01,0.01,0.01);
+                          obj.className = "noteMarker";
+                          obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} );
+                          obj.name = noteText + " " + obj.id; // Adds unique id stored in metadata to object name to easily deal with deletion and editing
+                          obj.userData = noteInfo;
+                          obj.position.set(point.x, point.y, point.z);
+                          markers.push(obj); // Adds to markers array defined in index.js
+                          // If label toggle is on, add the label to the scene
+                          if (isLabelVisible) {
+                            var text = document.createElement( 'div' );
+                            text.className = 'labelText';
+                            text.textContent = noteText;
+                            var label = new Three.CSS2DObject( text );
+                            obj.add( label );
+                          }
+                          scene.add( obj );
+                        }
+                        loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
+                      });
+                     
+                    }
+                  });
+                }
+                else if (value === 'roomMarker') {
+                  resolve();
+                  // Modal to enter note text
+                  Swal.mixin({
+                    input: 'text',
+                    showCancelButton: true,
+                    cancelButtonText: "Cancel",
+                    confirmButtonText: "Next",
+                    allowOutsideClick: false,
+                    progressSteps: ['1', '2', '3'],
+                  }).queue([
+                    {
+                      title: 'Mark a Room!',
+                      text: 'Enter a room name',
+                      inputValidator: (roomName) => {
+                        if(!roomName){
+                            return 'You need to enter text!';       
+                        }
+                        if( roomName.length > 50 ){
+                            return 'You have exceeded 50 characters';
+                        }
+                      },
+                    },
+                    {
+                      title: 'Add an image!',
+                      text: 'Enter a URL for the image'
+                    },
+                    {
+                      title: 'Add a description!',
+                      text: 'Enter a short description for the room',
+                      inputValidator: (roomDescription) => {
+                        if(!roomDescription){
+                            return 'You need to enter text!';       
+                        }
+                        if( roomDescription.length > 200 ){
+                            return 'You have exceeded 200 characters';
+                        }
+                      },
+                    },
+                  ]).then((roomInfoArray) => {
+                      roomInfoArray = roomInfoArray.value;
+                      var geometry = new Three.RingGeometry( 0.02, 0.08, 32 );
+                      geometry.rotateX(Math.PI/2);
+                      var material = new Three.MeshBasicMaterial( { color: 0x00FF7F, side: Three.DoubleSide } );
+                      var obj = new Three.Mesh( geometry, material );
+                      obj.position.set(point.x, point.y + 0.1, point.z);
+                      obj.className = "roomMarker";
+                      obj.name = roomInfoArray[0] + " " + obj.id; // Adds unique id stored in metadata to object name to easily deal with deletion and editing
+                      var text = document.createElement( 'div' );
+                      text.className = 'labelText';
+                      text.textContent = roomInfoArray[0];
+                      var label = new Three.CSS2DObject( text );
+                      obj.add( label );
+                      scene.add( obj );
+
+                      // Update panel with room name, image and description
+                      document.getElementById("navbarheader").innerHTML = roomInfoArray[0]; // Add mesh name to nav bar
+                      document.getElementById('navimage').src = roomInfoArray[1];
+                      document.getElementById('navimage').style.display = "block";
+                      document.getElementById('navimagedescription').innerHTML = roomInfoArray[2];
+                      document.getElementById('navimagedescription').style.display = "block";
+
+                      // Set metdadata with new data
+                      var roomInfo = new RoomInfo(point.x, point.y, point.z, roomInfoArray[0], obj.id, roomInfoArray[1], roomInfoArray[2]); // Class defined in index.js
+                      const location = new MapLocation(0,0,0); // Class defined in index.js
+
+                      scope.RoomsArray.push(roomInfo);
+                      let roomsList = {roomsList: scope.RoomsArray, notesList: scope.NotesArray};
+                      let data = new MapMetadataSettable(meshMetadata.metadata.name, location, roomsList); // Class defined in index.js
+                      scope._setMeshMetadata({metadata: data}, false);
+
+                      // Update footer with room images 
+                      var column = document.createElement('div');
+                      column.className = "imagecolumn";
+                      var img = document.createElement('input');
+                      img.type = "image";
+                      img.className = "footerimage";
+                      img.onclick = function () {
+                        moveCameraToRoom(roomInfo);
+                      }
+                      img.name = roomInfo.roomName;
+                      img.src = roomInfo.imageUrl;
+                      var imgText = document.createElement('div');
+                      imgText.innerHTML = roomInfo.roomName;
+                      column.appendChild(imgText);
+                      column.appendChild(img);
+                      document.getElementById("imagerow").appendChild(column);
+                    });
+                  };
+                });
+              }
+          })
+
+        /*   */
+        }
+        // Take first intersection with mesh
         if (scope.logging) console.log('Raycast to mesh is true');
         scope.readyForRaycast = false;
         scope.lastRaycastPoint = intersects[i].point;
+
         this._getKeyframeIndexFromPoint(scope.lastRaycastPoint, onKeyframeUpdate, onError, keyframeAmount);
       }
     }
@@ -377,6 +786,9 @@ xhr.send();
       mesh.name = 'PlacenoteMesh';
       if (scope.logging) console.log('Loading mesh complete');
       onLoad(mesh);
+      scope._getMeshMetadata();
+      scope.meshObj = mesh;
+      scope._setCameraOrbitOnCenter();
     };
     
     var objLoader = new OBJLoader2();
@@ -434,7 +846,7 @@ xhr.send();
       camera.position.z);
 
     // Camera rotation
-    var mapOrientationVect = new Vector4(				
+    var mapOrientationVect = new Vector4(       
       camera.quaternion.x,
       camera.quaternion.y,
       camera.quaternion.z,

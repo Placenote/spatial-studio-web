@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>Placenote 3D Explorer</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   </head>
   <body>
     <div class="container">
@@ -12,44 +13,45 @@
                 <div style="width: 25%; float: left;">
                     <img src="logo.png" width="50" style="padding-left: 10px;" />
                 </div>
-                <div style="width:75%;float:left;">
+                <div style="width:55%;float:left;">
                     <h1>Placenote Mesh Explorer</h1>
                 </div>
-            </div>
+                <div style="width:20%;float:right;">
+                  <i class="fa fa-share-alt-square"  onclick="onShareLinkButtonClick()" title="Share"></i>
+                  <i class="fa fa-cog"  onclick="onSettingsButtonClick()" title="Settings"></i>
+                </div>
+            </div>    
         </div>
         <div class="wrapper clearfix" id="screencontainer">
-          <div class="nav">
-            <div class="input">
-              <div class="label">Your API Key</div>
-              <input type="text" name="apikey" id="apikey" >
-            </div>
-            <div class="input">
-              <div class="label">Your Map ID</div>
-              <input type="text" name="mapid" id="mapid" >
-            </div>
-            <button id="startMeshManager" onclick="onClickStartMeshManagerBtn()">View Mesh </button>
-            <button id="startMeshManager" onclick="onClickDownloadMeshToFolderButton()"> Download Mesh </button>
-            <div class="spacer"></div>
-            <div class='imagepanel'>
-              <div class='gridcontainer' id="gridcontainer" style="display:none;" >
+          <div class="nav" id="navcontainer">
+            <h2 id="navbarheader"></h2>
+            <img src="" alt="Property Image" id="navimage">
+            <p id="navimagedescription"></p>
+             <!--<div class='imagepanel'>
+             
+               <div class='gridcontainer' id="gridcontainer" style="display:none;" >
               <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_1" /></div>
               <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_2" /></div>
               <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_3" /></div>
               <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_4" /></div>
               <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_5" /></div>
-              </div>
-            </div>
+              </div> 
+            </div> -->
           </div>
           <div class="content" id="threejscontainer">
-                <div class="content" id="threeViewer">
-                    <button style="right:20px; top:20px;" class="ui" id="shareLinkButton" onclick="onShareLinkButtonClick()">Get Share Link</button>
-
-                </div>
+            <button style="padding-left:65px; background:none; border:none;" title="Top-Down View" class="ui" id="toggleCameraViewButton" onclick="onToggleCameraButtonClick()"><i class="fa fa-eye-slash" id="toggleViewIcon" style="font-size:25px;color:white"></i></button>
+            <button style="background:none; border:none;" title="Toggle Label View" class="ui" id="toggleLabelViewButton" onclick="onToggleLabelViewButtonClick()"><i class="fa fa-toggle-on" id="toggleLabelIcon" style="font-size:25px;color:white"></i></button>
+            <button style="right:0px; top:5px; background:none; border:none;" class="ui"  title="Previous Note" id="nextNoteButton"onclick="onNextNoteButtonClick()" ><i class="fa fa-arrow-circle-right" style="font-size:25px;color:white"></i></button>
+            <button style="right:50px; top:5px; background:none; border:none;" class="ui" title="Recalibrate" id="calibrateButton"onclick="onCalibrateButtonClick()"><i class="fa fa-street-view" style="font-size:25px;color:white"></i></button>
+            <button style="right:100px; top:5px; background:none; border:none;" class="ui" title="Next Note" id="prevNoteButton"onclick="onPrevNoteButtonClick()"><i class="fa fa-arrow-circle-left" style="font-size:25px;color:white"></i></button>
+            <button style="right:0px; top:60px; background:none; border:none;" class="ui" title="View All Notes" id="notesListModal" onclick="onNotesViewButtonClick()"><i class="fa fa-book" style="font-size:25px;color:white"></i></button>
+            <div class="content" id="threeViewer">
+            </div>
           </div>
         </div>
         <div class="footer">
-            <p>Made with &hearts; by Placenote</p>
-          </p>
+          <div class="imagerow" id="imagerow"></div>
+          <p>Made with &hearts; by Placenote</p>
         </div>
     </div>
 
@@ -81,7 +83,22 @@
 
   </div>
 
-
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="settings-modal-content">
+      <span class="close" onclick="closeSettingsModal()">&times;</span>
+      <div class="input">
+        <div class="inputlabel">Your API Key</div>
+        <input type="text" name="apikey" id="apikey" >
+      </div>
+      <div class="input">
+        <div class="inputlabel">Your Map ID</div>
+        <input type="text" name="mapid" id="mapid" >
+      </div>
+      <button id="startMeshManager" onclick="onClickStartMeshManagerBtn()">View Mesh </button>
+      <button id="startMeshManager" onclick="onClickDownloadMeshToFolderButton()"> Download Mesh </button>
+    </div>
+  </div>
 
   </body>
   <script>
@@ -97,6 +114,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.0.2/jszip-utils.min.js"></script>
   <script src="Lib/threejs/Three.iife.js"></script>
-  <script src="Lib/mesh-manager.js/build/mesh-manager.iife.js"></script>
+  <script src="Lib/mesh-manager.js/build/mesh-manager.iife.min.js"></script>
   <script src="index.js"></script>
+  <script src="node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
 </html>
+
+

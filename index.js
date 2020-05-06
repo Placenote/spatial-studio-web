@@ -1,4 +1,4 @@
-// Gloal variables
+// Global variables
 const hiResImgNames = []; // Overview img filenames
 const hiResPositions = []; // Overview img camera positions
 const hiResQuaternions = []; // Overview img camera rotations
@@ -8,31 +8,10 @@ var loadedMeshApiKey = "empty";
 var loadedMeshMapId = "empty";
 
 var isCameraTopDown = false;
+var isLabelVisible = true;
 // Callback functions
 
 var onKeyFrameUpdate = function(keyframeInfo, camera) {
-  // Add cube at raycast point
-  var point = placenoteMesh.getRaycastPoint();
-  var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
-  var material = new Three.MeshBasicMaterial( {color: 0x00AEEF} );
-
-  var existingCube = scene.getObjectByName("clickCube");
-  var newCube;
-
-  if (!existingCube) {
-    newCube = new Three.Mesh( geometry, material );
-    newCube.name = "clickCube";
-    scene.add(newCube);
-    cubes.push(newCube);
-  }
-  else {
-    newCube = existingCube;
-  }
-
-  newCube.position.set(point.x,point.y,point.z);
-  newCube.rotation.set(point.x,point.y,point.z); // Random rotation
-
-
   // Update keyframe images
   keyframeInfo['keyframeNames'].forEach(function (index, i) {
 
@@ -44,7 +23,6 @@ var onKeyFrameUpdate = function(keyframeInfo, camera) {
 
 
 var onLoad = function(value) {
-  //
 
   var selectedObject = scene.getObjectByName('PlacenoteMesh');
   if(selectedObject) scene.remove( selectedObject );
@@ -53,15 +31,11 @@ var onLoad = function(value) {
   if(selectedCube) scene.remove( selectedCube );
 
   scene.add(value);
-
   loadedMeshApiKey = document.getElementById('apikey').value;
-  loadedMeshMapId= document.getElementById('mapid').value;
+  loadedMeshMapId = document.getElementById('mapid').value;
 
   closeModal();
-
 }
-
-
 
 var onError = function(error) {
   console.log(error);
@@ -143,6 +117,7 @@ var getOverviewImages = function() { // Get overview img data
 function onClickStartMeshManagerBtn() {
   //getOverviewImages();
   //placenoteMesh.setDecimationLevels([1,5]);
+  settingsModal.style.display="none";
 
   if (loadedMeshApiKey == document.getElementById('apikey').value && loadedMeshMapId == document.getElementById('mapid').value)
   {
@@ -290,7 +265,7 @@ var camera = new Three.PerspectiveCamera( 50, cameraAspect, 0.1, 1000);
 
 camera.position.z = 15;
 camera.position.y = 10;
-camera.lookAt(new Three.Vector3(0,0,0));
+//camera.lookAt(new Three.Vector3(0,0,0));
 
 scene.add(new Three.AxesHelper(0.5));
 
@@ -298,44 +273,97 @@ var renderer = new Three.WebGLRenderer();
 
 renderer.setSize(width, height);
 
+labelRenderer = new Three.CSS2DRenderer();
+labelRenderer.setSize( width, height );
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+
 document.getElementById('threeViewer').appendChild(renderer.domElement);
+document.getElementById('threeViewer').appendChild(labelRenderer.domElement);
 var controls = new Three.OrbitControls(camera, renderer.domElement);
 controls.enabled = true;
-controls.maxDistance = 20;
+controls.maxDistance = 10;
 controls.minDistance = 2;
 controls.enableDamping = true;
 controls.dampingFactor = 0.25;
 controls.enableZoom = true;
+controls.enablePan = false;
 controls.maxPolarAngle = Math.PI/2;
 
 scene.add( new Three.AmbientLight());
-var cubes = []
-var geometry = new Three.BoxGeometry( 0.1, 0.1, 0.1);
-var material = new Three.MeshBasicMaterial( {color: 0xFFF200} );
-material.wireframe = true;
-var cube = new Three.Mesh( geometry, material );
-cubes.push(cube);
-scene.add(cube);
+var markers = [];
+var labelIndex = -1;
 
 // END Three js viewer init
 
+// Toggle camera button onclick function
+function onToggleCameraButtonClick() {
+  // Toggle between on and off icons
+  icon = document.getElementById('toggleViewIcon');
+  icon.classList.toggle('fa-eye')
+  icon.classList.toggle('fa-eye-slash');
 
-function onToggleCameraClick(){
-
+  var middle = placenoteMesh._setCameraOrbitOnCenter();
   if (isCameraTopDown == false) {
+    // Remove note labels and objects
+    if (isLabelVisible === true) {
+      onToggleLabelViewButtonClick();
+    }
+
+    // Set camera and orbitControl values
     isCameraTopDown = true;
-    camera.position.set(0,10,0);
-    camera.lookAt(new Three.Vector3(0,0,0));
+    camera.position.set(middle.x,15,middle.z);
+    placenoteMesh._setCameraOrbitOnCenter();
+    controls.enableRotate = false;
+    controls.enablePan = true;
   }
   else {
+    if (isLabelVisible === false) {
+      onToggleLabelViewButtonClick();
+    }
+    // Set camera and orbitControl values
     isCameraTopDown = false;
     camera.position.set(0,10,15);
-    camera.lookAt(new Three.Vector3(0,0,0));
+    controls.enableRotate = true;
+    controls.enablePan = false;
   }
+  controls.update();
+}
 
+// Toggle label view button onclick function
+function onToggleLabelViewButtonClick() {
+  // Toggle between on and off icons
+  icon = document.getElementById('toggleLabelIcon');
+  icon.classList.toggle('fa-toggle-on')
+  icon.classList.toggle('fa-toggle-off');
+
+  // Remove labels from note objects
+  if (isLabelVisible) {
+    scene.children.forEach((child) => {
+      if (child.className =='noteMarker' && child.children[1]) {
+        child.remove(child.children[1]);
+      }
+    });
+    isLabelVisible= false;
+  }
+  // Adds labels to note objects
+  else {
+    scene.children.forEach((child) => {
+      if (child.className == 'noteMarker') {
+        var text = document.createElement( 'div' );
+        text.className = 'labelText';
+        text.textContent = child.userData.noteText;
+        var label = new Three.CSS2DObject( text );
+        child.add( label );
+      }
+    });
+    isLabelVisible = true;
+  }
 }
 
 var linkModal = document.getElementById("linkmodal");
+var settingsModal = document.getElementById("settingsModal");
 var span = document.getElementsByClassName("close")[0];
 
 
@@ -352,6 +380,13 @@ window.onclick = function(event) {
   }
 }
 
+function onSettingsButtonClick() {
+  settingsModal.style.display="block";
+}
+
+function closeSettingsModal() {
+  settingsModal.style.display="none";
+}
 
 function onShareLinkButtonClick()
 {
@@ -373,14 +408,147 @@ function onShareLinkButtonClick()
 
     document.getElementById('sharelink').style.display = 'none';
   }
+}
 
+// Moving camera to a specific room
+function moveCameraToRoom(roomObj) {
+  // Do not translate the camera towards the room marker if in top-down view
+  if (isCameraTopDown) {
+    controls.target.set(roomObj.px,roomObj.py,roomObj.pz); // Sets camera to orbit around note
+    controls.object.position.set(roomObj.px, roomObj.py + 10, roomObj.pz); // Sets camera to be directly above the marker
+    controls.update();
+  }
+  // Translate the camera towards the room marker if not in top-down view
+  else {
+    // Update the target for OrbitControls and moves camera closer to note
+    var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
+    var roomVector = new Three.Vector3(roomObj.px,roomObj.py,roomObj.pz);
+    controls.target.set(roomVector.x,roomVector.y,roomVector.z); // Sets camera to orbit around note
+    var distance = cameraVector.distanceTo(roomVector) - 2.5;
+    camera.translateZ(-distance);
+    controls.update();
 
+  }
+  // Update panel with room name, image and description
+  document.getElementById("navbarheader").innerHTML = roomObj.roomName; // Add mesh name to nav bar
+  document.getElementById('navimage').src = roomObj.imageUrl;
+  document.getElementById('navimage').style.display = "block";
+  document.getElementById('navimagedescription').innerHTML = roomObj.roomDescription;
+  document.getElementById('navimagedescription').style.display = "block";
 
 }
 
+// Moving camera to a specific note
+function moveCameraToNote(labelIndex) {
+  if (isCameraTopDown) {
+    var noteVector = new Three.Vector3(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
+    controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
+    controls.object.position.set(noteVector.x, noteVector.y + 10, noteVector.z); // Sets camera to be directly above the marker
 
+  }
+  else {
+    // Update the target for OrbitControls and moves camera closer to note
+    var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
+    var noteVector = new Three.Vector3(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
+    controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
+    var distance = cameraVector.distanceTo(noteVector) - 2.5;
+    camera.translateZ(-distance);
+    controls.update();
+  }
+}
 
+// Next note button onclick function
+function onNextNoteButtonClick() {
+  ++labelIndex; // increments index
+  if (labelIndex == placenoteMesh.NotesArray.length) {
+    labelIndex = 0; // If the end of array is reached, reset to first array entry
+  }
+  moveCameraToNote(labelIndex);
+}
 
+// Previous note button onclick function
+function onPrevNoteButtonClick() {
+  if (labelIndex <= 0) {
+    labelIndex = placenoteMesh.NotesArray.length - 1;  // If previous button is clicked first, go to last entry
+  }
+  else {
+    --labelIndex; // decrements index
+  }
+  moveCameraToNote(labelIndex);
+}
+
+// Calibrate button onclick function
+function onCalibrateButtonClick() {
+  placenoteMesh._setCameraOrbitOnCenter();
+  labelIndex = -1;
+}
+
+// View all notes button onclick function
+function onNotesViewButtonClick() {
+  var noteOptions = {};
+  var noteIndex = 0;
+  // Loop through array to retrieve all notes for display in modal
+  placenoteMesh.NotesArray.forEach(function(noteObj) {
+    noteOptions[noteIndex] = noteObj.noteText;
+    ++noteIndex;
+  })
+    Swal.fire({
+      title: 'Select a Note!',
+      html: "Jump to the selected note by pressing 'OK'",
+      input:'select',
+      inputPlaceholder: 'Pick a note',
+      inputOptions: noteOptions,
+      showCloseButton: true,
+      showCancelButton: true,
+      focusConfirm: false,
+      inputValidator: (value) => {
+        return new Promise((resolve) => {
+          if (value === "") { resolve(); } // If no note is selected but OK is still pressed
+          labelIndex = value;
+          moveCameraToNote(labelIndex);
+          resolve();
+        })
+      }
+    });
+}
+
+class MapMetadataSettable {
+  constructor(name, location, userdata) {
+    this.name = name;
+    this.location = location;
+    this.userdata = userdata;
+  }
+}
+
+class MapLocation {
+  constructor(latitude, longitude, altitude) {
+    this.latitude = latitude;
+    this.longitude = longitude;
+    this.altitude = altitude;
+  }
+}
+
+class NoteInfo {
+  constructor(px, py, pz, noteText, id) {
+    this.px = px;
+    this.py = py;
+    this.pz = pz;
+    this.noteText = noteText;
+    this.id = id;
+  }
+}
+
+class RoomInfo {
+  constructor(px, py, pz, roomName, id, imageUrl, roomDescription) {
+    this.px = px;
+    this.py = py;
+    this.pz = pz;
+    this.roomName = roomName;
+    this.id = id;
+    this.imageUrl = imageUrl;
+    this.roomDescription = roomDescription;
+  }
+}
 
 var onDocumentMouseDown = function(event) {
   if(!placenoteMesh.isInitialized()) return;
@@ -417,13 +585,13 @@ addEventListener( 'dblclick', onDocumentMouseDown, false ); // Add click listene
 
 // THREE.js animate function
 var animate = function() {
-  cubes.forEach(function (cube) {
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
+  markers.forEach(function (marker) {
+    marker.rotation.y += 0.01;
   });
 
   requestAnimationFrame( animate );
   controls.update();
   renderer.render( scene, camera );
+  labelRenderer.render( scene, camera );
 }
 animate();

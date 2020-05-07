@@ -117,10 +117,10 @@
 
   .nav{            
     float: left; 
-    width: 25%; 
+    width: 35%; 
     padding: 5px;
     box-sizing: border-box;
-    min-height: 450px;
+    height: 475px;
     background-color: #f0f0f0;
   }
   .nav h2{
@@ -130,31 +130,38 @@
     font-weight: 400;
   }
 
-  .nav img{
-    width: 250px;
-    height: 200px;
-    display: none;
-  }
-
-  .nav p{
-    font-size: 16px;
-    display: none;
-  }
-
   .ui {
     position: absolute;
   }
   
   .content{
     float: left;
-    width: 75%;
-    min-height: 450px;
     position: relative;
   }
   
   .content h2{
     font-size: 16px; 
     margin: 0px;
+  }
+
+  .threejswindow{
+    position: relative;
+  }
+
+  .imagecontent{
+    width: 65%;
+    float:left;
+    height: 475px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 500;
+  }
+
+  .imagecontent img{
+    height: 100%; 
+    width: 100%; 
+    object-fit: cover;
   }
 
   .clearfix:after{

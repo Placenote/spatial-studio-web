@@ -252,8 +252,8 @@ function closeModal() {
 //var width = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth) - 100;
 //var height = (window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight) - 100;
 
-var width  = document.getElementById('screencontainer').clientWidth * 0.75;
-var height = document.getElementById('screencontainer').clientHeight;
+var width  = document.getElementById('screencontainer').clientWidth * 0.35;
+var height = document.getElementById('screencontainer').clientHeight * 0.6;
 
 const cameraAspect = width/height;
 
@@ -293,7 +293,7 @@ controls.maxPolarAngle = Math.PI/2;
 
 scene.add( new Three.AmbientLight());
 var markers = [];
-var labelIndex = -1;
+var roomIndex = -1;
 
 // END Three js viewer init
 
@@ -306,11 +306,6 @@ function onToggleCameraButtonClick() {
 
   var middle = placenoteMesh._setCameraOrbitOnCenter();
   if (isCameraTopDown == false) {
-    // Remove note labels and objects
-    if (isLabelVisible === true) {
-      onToggleLabelViewButtonClick();
-    }
-
     // Set camera and orbitControl values
     isCameraTopDown = true;
     camera.position.set(middle.x,15,middle.z);
@@ -319,9 +314,6 @@ function onToggleCameraButtonClick() {
     controls.enablePan = true;
   }
   else {
-    if (isLabelVisible === false) {
-      onToggleLabelViewButtonClick();
-    }
     // Set camera and orbitControl values
     isCameraTopDown = false;
     camera.position.set(0,10,15);
@@ -329,37 +321,6 @@ function onToggleCameraButtonClick() {
     controls.enablePan = false;
   }
   controls.update();
-}
-
-// Toggle label view button onclick function
-function onToggleLabelViewButtonClick() {
-  // Toggle between on and off icons
-  icon = document.getElementById('toggleLabelIcon');
-  icon.classList.toggle('fa-toggle-on')
-  icon.classList.toggle('fa-toggle-off');
-
-  // Remove labels from note objects
-  if (isLabelVisible) {
-    scene.children.forEach((child) => {
-      if (child.className =='noteMarker' && child.children[1]) {
-        child.remove(child.children[1]);
-      }
-    });
-    isLabelVisible= false;
-  }
-  // Adds labels to note objects
-  else {
-    scene.children.forEach((child) => {
-      if (child.className == 'noteMarker') {
-        var text = document.createElement( 'div' );
-        text.className = 'labelText';
-        text.textContent = child.userData.noteText;
-        var label = new Three.CSS2DObject( text );
-        child.add( label );
-      }
-    });
-    isLabelVisible = true;
-  }
 }
 
 var linkModal = document.getElementById("linkmodal");
@@ -409,9 +370,19 @@ function onShareLinkButtonClick()
     document.getElementById('sharelink').style.display = 'none';
   }
 }
-
 // Moving camera to a specific room
-function moveCameraToRoom(roomObj) {
+function moveCameraToRoom(roomIndex) {
+  // Switch image to new room image
+  const roomObj = placenoteMesh.RoomsArray[roomIndex];
+  var container = document.getElementById('imagecontent');
+  var imageChild = document.getElementById('roomImage');
+  container.removeChild(imageChild);
+  var newImage = document.createElement('img');
+  newImage.id = 'roomImage';
+  newImage.src = roomObj.imageUrl;
+  newImage.name = roomObj.roomName;
+  container.appendChild(newImage);
+
   // Do not translate the camera towards the room marker if in top-down view
   if (isCameraTopDown) {
     controls.target.set(roomObj.px,roomObj.py,roomObj.pz); // Sets camera to orbit around note
@@ -427,89 +398,26 @@ function moveCameraToRoom(roomObj) {
     var distance = cameraVector.distanceTo(roomVector) - 2.5;
     camera.translateZ(-distance);
     controls.update();
-
-  }
-  // Update panel with room name, image and description
-  document.getElementById("navbarheader").innerHTML = roomObj.roomName; // Add mesh name to nav bar
-  document.getElementById('navimage').src = roomObj.imageUrl;
-  document.getElementById('navimage').style.display = "block";
-  document.getElementById('navimagedescription').innerHTML = roomObj.roomDescription;
-  document.getElementById('navimagedescription').style.display = "block";
-
-}
-
-// Moving camera to a specific note
-function moveCameraToNote(labelIndex) {
-  if (isCameraTopDown) {
-    var noteVector = new Three.Vector3(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
-    controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
-    controls.object.position.set(noteVector.x, noteVector.y + 10, noteVector.z); // Sets camera to be directly above the marker
-
-  }
-  else {
-    // Update the target for OrbitControls and moves camera closer to note
-    var cameraVector = new Three.Vector3(controls.object.position.x, controls.object.position.y, controls.object.position.z);
-    var noteVector = new Three.Vector3(placenoteMesh.NotesArray[labelIndex].px,placenoteMesh.NotesArray[labelIndex].py,placenoteMesh.NotesArray[labelIndex].pz);
-    controls.target.set(noteVector.x,noteVector.y,noteVector.z); // Sets camera to orbit around note
-    var distance = cameraVector.distanceTo(noteVector) - 2.5;
-    camera.translateZ(-distance);
-    controls.update();
   }
 }
-
-// Next note button onclick function
-function onNextNoteButtonClick() {
-  ++labelIndex; // increments index
-  if (labelIndex == placenoteMesh.NotesArray.length) {
-    labelIndex = 0; // If the end of array is reached, reset to first array entry
+// Next room button onclick function
+function onNextRoomButtonClick() {
+  ++roomIndex; // increments index
+  if (roomIndex == placenoteMesh.RoomsArray.length) {
+    roomIndex = 0; // If the end of array is reached, reset to first array entry
   }
-  moveCameraToNote(labelIndex);
+  moveCameraToRoom(roomIndex);
 }
 
-// Previous note button onclick function
+// Previous room button onclick function
 function onPrevNoteButtonClick() {
-  if (labelIndex <= 0) {
-    labelIndex = placenoteMesh.NotesArray.length - 1;  // If previous button is clicked first, go to last entry
+  if (roomIndex <= 0) {
+    roomIndex = placenoteMesh.RoomsArray.length - 1;  // If previous button is clicked first, go to last entry
   }
   else {
-    --labelIndex; // decrements index
+    --roomIndex; // decrements index
   }
-  moveCameraToNote(labelIndex);
-}
-
-// Calibrate button onclick function
-function onCalibrateButtonClick() {
-  placenoteMesh._setCameraOrbitOnCenter();
-  labelIndex = -1;
-}
-
-// View all notes button onclick function
-function onNotesViewButtonClick() {
-  var noteOptions = {};
-  var noteIndex = 0;
-  // Loop through array to retrieve all notes for display in modal
-  placenoteMesh.NotesArray.forEach(function(noteObj) {
-    noteOptions[noteIndex] = noteObj.noteText;
-    ++noteIndex;
-  })
-    Swal.fire({
-      title: 'Select a Note!',
-      html: "Jump to the selected note by pressing 'OK'",
-      input:'select',
-      inputPlaceholder: 'Pick a note',
-      inputOptions: noteOptions,
-      showCloseButton: true,
-      showCancelButton: true,
-      focusConfirm: false,
-      inputValidator: (value) => {
-        return new Promise((resolve) => {
-          if (value === "") { resolve(); } // If no note is selected but OK is still pressed
-          labelIndex = value;
-          moveCameraToNote(labelIndex);
-          resolve();
-        })
-      }
-    });
+  moveCameraToRoom(roomIndex);
 }
 
 class MapMetadataSettable {

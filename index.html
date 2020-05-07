@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>Placenote 3D Explorer!</title>
+    <title>Placenote 3D Explorer</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   </head>
@@ -24,29 +24,23 @@
         </div>
         <div class="wrapper clearfix" id="screencontainer">
           <div class="nav" id="navcontainer">
-            <h2 id="navbarheader"></h2>
-            <img src="" alt="Property Image" id="navimage">
-            <p id="navimagedescription"></p>
-             <!--<div class='imagepanel'>
-             
-               <div class='gridcontainer' id="gridcontainer" style="display:none;" >
+             <div class='imagepanel'>
+              <div class='threejswindow' id="threejscontainer">
+                <button style="padding-left:10px; background:none; border:none;" title="Top-Down View" class="ui" id="toggleCameraViewButton" onclick="onToggleCameraButtonClick()"><i class="fa fa-eye-slash" id="toggleViewIcon" style="font-size:25px;color:white"></i></button>
+                <div class="content" id="threeViewer">
+                </div>
+              </div>
+              <div class='gridcontainer' id="gridcontainer" style="display:none;" >
               <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_1" /></div>
               <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_2" /></div>
               <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_3" /></div>
               <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_4" /></div>
-              <div class='column'><img src="" class="rotate90" height="90px" width="160px" id ="keyframe_5" /></div>
               </div> 
-            </div> -->
+            </div> 
           </div>
-          <div class="content" id="threejscontainer">
-            <button style="padding-left:65px; background:none; border:none;" title="Top-Down View" class="ui" id="toggleCameraViewButton" onclick="onToggleCameraButtonClick()"><i class="fa fa-eye-slash" id="toggleViewIcon" style="font-size:25px;color:white"></i></button>
-            <button style="background:none; border:none;" title="Toggle Label View" class="ui" id="toggleLabelViewButton" onclick="onToggleLabelViewButtonClick()"><i class="fa fa-toggle-on" id="toggleLabelIcon" style="font-size:25px;color:white"></i></button>
-            <button style="right:0px; top:5px; background:none; border:none;" class="ui"  title="Previous Note" id="nextNoteButton"onclick="onNextNoteButtonClick()" ><i class="fa fa-arrow-circle-right" style="font-size:25px;color:white"></i></button>
-            <button style="right:50px; top:5px; background:none; border:none;" class="ui" title="Recalibrate" id="calibrateButton"onclick="onCalibrateButtonClick()"><i class="fa fa-street-view" style="font-size:25px;color:white"></i></button>
-            <button style="right:100px; top:5px; background:none; border:none;" class="ui" title="Next Note" id="prevNoteButton"onclick="onPrevNoteButtonClick()"><i class="fa fa-arrow-circle-left" style="font-size:25px;color:white"></i></button>
-            <button style="right:0px; top:60px; background:none; border:none;" class="ui" title="View All Notes" id="notesListModal" onclick="onNotesViewButtonClick()"><i class="fa fa-book" style="font-size:25px;color:white"></i></button>
-            <div class="content" id="threeViewer">
-            </div>
+          <div class = "imagecontent" id="imagecontent">
+            <button style="right:775px;background:none; border:none;" class="ui" title="Previous Room" id="prevRoomButton"onclick="onPrevRoomButtonClick()"><i class="fa fa-arrow-circle-left" style="font-size:25px;color:white"></i></button>
+            <button style="right: 0px;background:none; border:none;" class="ui"  title="Next Room" id="nextRoomButton"onclick="onNextRoomButtonClick()" ><i class="fa fa-arrow-circle-right" style="font-size:25px;color:white"></i></button>
           </div>
         </div>
         <div class="footer">

@@ -49,7 +49,6 @@ var PlacenoteMesh = (function () {
       Http.onreadystatechange = (e) => {
       const jsonRes = JSON.parse(Http.response);
       this.meshMetadata = jsonRes;
-      document.getElementById("navbarheader").innerHTML = jsonRes.metadata.name; // Add mesh name to nav bar
       if (!jsonRes.metadata.userdata) { return; }
       // Loops through NotesArray to populate scene
       if (jsonRes.metadata.userdata.notesList) { 
@@ -74,12 +73,6 @@ var PlacenoteMesh = (function () {
               obj.userData = noteObj;
               obj.position.set(noteObj.px,noteObj.py,noteObj.pz);
               markers.push(obj);  // Adds to markers array defined in index.js
-
-              var text = document.createElement( 'div' );
-              text.className = 'labelText';
-              text.textContent = noteObj.noteText;
-              var label = new Three.CSS2DObject( text );
-              obj.add( label );
               scene.add( obj );
             }
             loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
@@ -107,25 +100,16 @@ var PlacenoteMesh = (function () {
           var label = new Three.CSS2DObject( text );
           obj.add( label );
           scene.add( obj );
-          
-          // Update footer with room images 
-          var column = document.createElement('div');
-          column.className = "imagecolumn";
-          var img = document.createElement('input');
-          img.type = "image";
-          img.className = "footerimage";
-          img.onclick = function () {
-            moveCameraToRoom(roomObj);
-          }
-          img.name = roomObj.roomName;
-          img.src = roomObj.imageUrl;
-          var imgText = document.createElement('div');
-          imgText.innerHTML = roomObj.roomName;
-          column.appendChild(img);
-          column.appendChild(imgText);
-          document.getElementById("imagerow").appendChild(column);
         });
       }
+      if (this.RoomsArray && !document.getElementById('roomImage')) { 
+        var container = document.getElementById('imagecontent');
+        var image = document.createElement('img');
+        image.id = 'roomImage';
+        image.src = this.RoomsArray[0].imageUrl;
+        image.name = this.RoomsArray[0].roomName;
+        container.appendChild(image);
+      };
       return this.meshMetadata;
     }
   };

@@ -20,15 +20,118 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       this.readyForRaycast = true;
       this.lastRaycastPoint;
       this.logging = false;
+      this.meshMetadata = null;
+      this.NotesArray = [];
     }
+    /**
+     * @desc HELPER METHOD: Retrieves mesh metadata. 
+     * Makes Http request to get metadata
+     */  
+    PlacenoteMesh.prototype._getMeshMetadata = function () {
+      const Http = new XMLHttpRequest();
+      const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/getMetadata';
+      var apiKeyVal = document.getElementById('apikey').value;
+      var mapIdVal = document.getElementById('mapid').value;
+      Http.open("GET", url, true);
+      Http.setRequestHeader('APIKEY', apiKeyVal);
+      Http.setRequestHeader('placeid', mapIdVal);
+      Http.send();
+      Http.onreadystatechange = (e) => {
+      const jsonRes = JSON.parse(Http.response);
+      this.meshMetadata = jsonRes;
+      if (jsonRes.metadata.userdata.notesList) { 
+        this.NotesArray = jsonRes.metadata.userdata.notesList;
+      }
+      this.NotesArray.forEach((noteObj) => {
+        // For some reason, _init() is being called twice, so this will prevent duplicate scene children
+        if (scene.getObjectByName(noteObj.noteText)) {
+          return;
+        }
+        if (scene.getObjectByName("Label: " + noteObj.noteText)) {
+          return;
+        }
+        // Loads note markers and note labels into the scene
+        var mtlLoader = new Three.MTLLoader();
+        mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
+          materials.preload();
+          var loader = new Three.OBJLoader();
+          loader.setMaterials( materials )
+          // This function is called on successful load
+          function callbackOnLoad ( obj ) {
+            obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} ); // Sets object material to blue (temporary solution to Pin.mtl issue)
+            obj.scale.set(0.01,0.01,0.01); // Scales the object size down to fit the mesh
+            obj.className = "noteMarker";
+            obj.name = noteObj.noteText;
+            obj.userData = noteObj;
+            obj.position.set(noteObj.px,noteObj.py,noteObj.pz);
+            scene.add( obj );  
+            markers.push(obj);  // Adds to markers array defined in index.js
+          }
+          loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
+        });
+        var text = document.createElement( 'div' );
+        text.className = 'noteText';
+        text.textContent = noteObj.noteText;
+
+        var label = new Three.CSS2DObject( text );
+        label.name = "Label: " + noteObj.noteText;
+        label.position.set(noteObj.px,noteObj.py - 0.5,noteObj.pz);
+        scene.add( label );
+      });
+      return this.meshMetadata;
+      }
+    };
+
+     /**
+    * @desc HELPER METHOD: Sets mesh metadata. 
+    * Makes Http request to set metadata
+    */
+   PlacenoteMesh.prototype._setMeshMetadata = function (data, deleteNote) {
+    const Http = new XMLHttpRequest();
+    const url = 'https://us-central1-placenote-sdk.cloudfunctions.net/setMetadata';
+    var apiKeyVal = document.getElementById('apikey').value;
+    var mapIdVal = document.getElementById('mapid').value;
+    Http.open("POST", url, true);
+    Http.setRequestHeader('APIKEY', apiKeyVal);
+    Http.setRequestHeader('placeid', mapIdVal);
+
+    Http.send(JSON.stringify(data));
+    Swal.fire({
+      title: 'Saving Changes...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      allowEnterKey: false,
+      onOpen: () => {
+          Swal.showLoading();
+      }
+  })
+    Http.onreadystatechange = (e) => {
+      if (Http.readyState == 4 && Http.status == 200) {
+        this.meshMetadata = data;
+        if (deleteNote) {
+          Swal.fire({
+            icon: 'success',
+            text: 'Note has been deleted!',
+          });
+        }
+        else {
+          Swal.close();
+        }
+      }
+      if (Http.status == 400) {
+        Swal.fire({
+          icon: 'error',
+          text: "'Oops...', 'Something went wrong!', 'error'",
+        });
+      }
+    }
+   }
     /**
     * @desc HELPER METHOD: initializes mesh for clickety click. 
     * Makes Http request to download dataset.json
     * Calls _createClicketyClickCameras()
     * @param onError (Optional) Error callback that receives the error as an argument
     */
-
-
     PlacenoteMesh.prototype._init = function (onError) {
       if (this.logging) console.log('Starting Initialization');
       var scope = this;
@@ -200,7 +303,147 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
       var scope = this;
 
       for (var i = 0; i < intersects.length; i++) {
-        if (scope.readyForRaycast && intersects[i].object.name == 'PlacenoteMesh') {
+        // Checks if raycast hits either the mesh or an existing note marker
+        if (scope.readyForRaycast && (intersects[i].object.name == 'PlacenoteMesh' || intersects[i].object.parent.className == 'noteMarker')) {
+          var noteObj = intersects[i].object;
+          delete this.meshMetadata.metadata.created; // Removes parameter so valid metadata is passed
+          let meshMetadata = this.meshMetadata;
+         
+          // Logic if raycast hits an existing object
+          if (intersects[i].object.parent.className == 'noteMarker') {
+            // Changes color of object when clicked on
+            intersects[i].object.material = new Three.MeshBasicMaterial( {color: 0xFFFF00} ); 
+            // Modal to enter note text
+            Swal.fire({
+              title: 'Edit Note!',
+              text: 'Enter note text here:',
+              input: 'text',
+              showCancelButton: true,
+              cancelButtonText: "Delete note",
+              confirmButtonText: "Save note info",
+              inputValue: noteObj.parent.userData.noteText, // Edit existing note text for that object
+              allowOutsideClick: false,
+              inputValidator: (noteText) => {
+                if(!noteText){
+                    return 'You need to enter text!';       
+                }
+                if( noteText.length > 100 ){
+                    return 'You have exceeded 100 characters';
+                }
+              }
+            }).then(function(noteText) {
+              // Logic for delete button on edit popup
+              if (noteText.dismiss == "cancel") {
+                // Modifies notes list by removing the note being deleted from the array
+                scope.NotesArray.forEach((note) => {
+                  // Compares note text and position values, which prevents deletion errors when multiple notes have the same note text
+                  if (note.noteText == noteObj.parent.userData.noteText && note.px == noteObj.parent.position.x && note.py == noteObj.parent.position.y && note.pz == noteObj.parent.position.z) {
+                    let index = meshMetadata.metadata.userdata.notesList.indexOf(note);
+                    meshMetadata.metadata.userdata.notesList.splice(index, 1);
+                    meshMetadata.metadata.userdata.notesList = scope.NotesArray;
+                    scope._setMeshMetadata(meshMetadata, true);
+                  }
+                })
+                // Removes note cube and note label from the scene 
+                scene.remove(scene.getObjectById(noteObj.parent.id));
+
+                // This loop is necessary for removing correct label if there are multiple labels with the same text by comparing position values
+                scene.children.forEach((child) => {
+                  if (child.name == "Label: " + noteObj.parent.userData.noteText && child.position.x == noteObj.parent.position.x && child.position.y == noteObj.parent.position.y - 0.5 && child.position.z == noteObj.parent.position.z) {
+                    scene.remove(child);
+                  }
+                });
+              }
+              // Logic for saving edited note information
+              else {
+                scope.NotesArray.forEach((note) => {
+                  if (note.noteText == noteObj.parent.userData.noteText) {
+                    // Removes note label from scene
+                    scene.children.forEach((child) => {
+                      if (child.name == "Label: " + noteObj.parent.userData.noteText && child.position.x == noteObj.parent.position.x && child.position.y == noteObj.parent.position.y - 0.5 && child.position.z == noteObj.parent.position.z) {
+                        scene.remove(child);
+                      }
+                    }); 
+                    note.noteText = noteText.value;
+                    noteObj.parent.userData.noteText = noteText.value;
+                    noteObj.parent.name = noteText.value;
+                  }
+                })
+                // Update local array and call setMetadata endpoint
+                meshMetadata.metadata.userdata.notesList = scope.NotesArray;
+                scope._setMeshMetadata(meshMetadata, false);
+
+                // Create a new label for the note
+                var text = document.createElement( 'div' );
+                text.className = 'noteText';
+						    text.textContent = noteText.value;
+
+                var label = new Three.CSS2DObject( text );
+                label.name = "Label: " + noteText.value;
+						    label.position.set(noteObj.parent.userData.px, noteObj.parent.userData.py - 0.5, noteObj.parent.userData.pz);
+                scene.add( label );
+              }
+            });
+          }
+          // Logic if raycast hits the mesh
+          if (intersects[i].object.name == 'PlacenoteMesh') {
+             // Modal to enter note text
+             Swal.fire({
+              title: 'Create a Note!',
+              text: 'Enter note text here:',
+              input: 'text',
+              showCancelButton: true,
+              cancelButtonText: "Cancel",
+              confirmButtonText: "Save note info",
+              allowOutsideClick: false,
+              inputValidator: (noteText) => {
+                if(!noteText){
+                    return 'You need to enter text!';       
+                }
+                if( noteText.length > 100 ){
+                    return 'You have exceeded 100 characters';
+                }
+              },
+              preConfirm: function(noteText) {
+                var point = scope.getRaycastPoint();
+                var noteInfo = new NoteInfo(point.x, point.y, point.z, noteText); // Class defined in index.js
+                const location = new MapLocation(0,0,0); // Class defined in index.js
+  
+                scope.NotesArray.push(noteInfo);
+                let notesList = {notesList: scope.NotesArray};
+                let data = new MapMetadataSettable(meshMetadata.metadata.name, location, notesList); // Class defined in index.js
+                scope._setMeshMetadata({metadata: data}, false);
+
+                // Add cube at raycast point
+                var mtlLoader = new Three.MTLLoader();
+                mtlLoader.load( 'Lib/mesh-manager.js/marker-pin-obj/Pin.mtl', function( materials ) {
+                  materials.preload();
+                  var loader = new Three.OBJLoader();
+                  loader.setMaterials( materials )
+                  // This function is called on successful load
+                  function callbackOnLoad ( obj ) {
+                    obj.scale.set(0.01,0.01,0.01);
+                    obj.className = "noteMarker";
+                    obj.children[0].material = new Three.MeshBasicMaterial( {color: 0x1e90ff} );
+                    obj.name = noteText;
+                    obj.userData = noteInfo;
+                    obj.position.set(point.x, point.y, point.z);
+                    scene.add( obj );
+                    markers.push(obj);
+                  }
+                  loader.load('Lib/mesh-manager.js/marker-pin-obj/marker.obj', callbackOnLoad, null, null, null );
+                });   
+                var text = document.createElement( 'div' );
+                text.className = 'noteText';
+                text.textContent = noteText;
+
+                var label = new Three.CSS2DObject( text );
+                label.name = "Label: " + noteText;
+                label.position.set(point.x, point.y - 0.5, point.z);
+                scene.add( label );  
+              }
+            });
+          }
           // Take first intersection with mesh
           if (scope.logging) console.log('Raycast to mesh is true');
           scope.readyForRaycast = false;
@@ -216,7 +459,6 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
     * @desc PUBLIC METHOD: Get point of last raycast intersection.
     * @return THREE.Vector3 of raycast intersection point
     */
-
 
     PlacenoteMesh.prototype.getRaycastPoint = function () {
       if (this.lastRaycastPoint) return this.lastRaycastPoint;
@@ -419,6 +661,7 @@ var MeshManager = (function (exports, JSZip, JSZipUtils, threeFull) {
         mesh.name = 'PlacenoteMesh';
         if (scope.logging) console.log('Loading mesh complete');
         onLoad(mesh);
+        scope._getMeshMetadata();
       };
 
       var objLoader = new threeFull.OBJLoader2();
